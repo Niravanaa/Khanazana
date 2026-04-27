@@ -1,0 +1,51 @@
+{
+  "name": "khanazana",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "prepare": "node scripts/setup-husky.mjs",
+    "postinstall": "prisma generate",
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "type-check": "pnpm -r type-check",
+    "test": "pnpm -r test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "verify": "pnpm format && pnpm lint && pnpm type-check && pnpm test",
+    "validate:branch": "node scripts/validate-branch-name.mjs",
+    "validate:commit": "node scripts/validate-commit-msg.mjs"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs,json,md,css}": [
+      "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "prisma",
+      "@prisma/engines"
+    ]
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@prisma/client": "^7.8.0",
+    "tsx": "^4.19.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "prisma": "^7.8.0",
+    "supabase": "^2.95.5",
+    "typescript": "^5.7.2"
+  }
+}

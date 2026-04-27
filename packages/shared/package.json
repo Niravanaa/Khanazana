@@ -1,0 +1,18 @@
+{
+  "name": "@khanazana/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "echo \"No lint rules yet for shared\"",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests yet for shared\"",
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

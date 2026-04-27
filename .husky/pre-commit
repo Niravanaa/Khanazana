@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+pnpm validate:branch
+pnpm lint-staged
+pnpm lint
+pnpm type-check
+pnpm build
