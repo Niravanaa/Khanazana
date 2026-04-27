@@ -1,0 +1,29 @@
+# Node
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+out/
+dist/
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# OS / IDE
+.DS_Store
+.vscode/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+supabase/docker/
