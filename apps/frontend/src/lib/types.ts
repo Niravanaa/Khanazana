@@ -4,6 +4,8 @@ export interface RecipeInput {
   ingredients: string[];
   instructions: string[];
   image_path?: string | null;
+  tags?: string[];
+  cook_time?: number | null;
 }
 
 export interface RecipeRecord {
@@ -14,6 +16,14 @@ export interface RecipeRecord {
   ingredients: string[];
   instructions: string[];
   image_path: string | null;
+  tags: string[];
+  cook_time: number | null;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface RecipeSearchParams {
+  query?: string;
+  tag?: string;
+  maxCookTime?: number;
 }

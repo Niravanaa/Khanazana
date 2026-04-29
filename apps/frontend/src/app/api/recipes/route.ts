@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createRecipeForUser, getCurrentUser, listRecipesForUser } from '@/lib/recipes';
+import {
+  createRecipeForUser,
+  getCurrentUser,
+  getRecipeImageUrl,
+  listRecipesForUser,
+} from '@/lib/recipes';
 import { RecipeInput } from '@/lib/types';
 
 export async function GET() {
@@ -10,7 +15,11 @@ export async function GET() {
     }
 
     const recipes = await listRecipesForUser(user.id);
-    return NextResponse.json({ recipes });
+    const recipesWithImageUrl = recipes.map((r) => ({
+      ...r,
+      image_url: getRecipeImageUrl(r.image_path),
+    }));
+    return NextResponse.json({ recipes: recipesWithImageUrl });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }

@@ -3,4 +3,4 @@ pnpm validate:branch
 pnpm lint-staged
 pnpm lint
 pnpm type-check
-pnpm build
+NEXT_DIST_DIR=.next-precommit pnpm build

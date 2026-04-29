@@ -21,11 +21,11 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
   const deleteAction = deleteRecipeAction.bind(null, recipe.id);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-2xl">
         <Link
           href="/recipes"
-          className="mb-6 inline-flex text-sm text-slate-600 hover:text-slate-900"
+          className="mb-6 inline-flex text-sm text-muted-foreground hover:text-foreground"
         >
           ← Back to recipes
         </Link>
@@ -34,10 +34,27 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
           <CardHeader>
             <CardTitle className="text-3xl">{recipe.title}</CardTitle>
             <CardDescription>{recipe.description}</CardDescription>
+            {(recipe.cook_time || recipe.tags.length > 0) && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {recipe.cook_time && (
+                  <span className="rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
+                    ⏱ {recipe.cook_time} min
+                  </span>
+                )}
+                {recipe.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-accent px-3 py-1 text-sm text-accent-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             {imageUrl ? (
-              <div className="relative h-96 w-full overflow-hidden rounded-lg bg-slate-200">
+              <div className="relative h-96 w-full overflow-hidden rounded-lg bg-muted">
                 <Image
                   src={imageUrl}
                   alt={recipe.title}
@@ -49,26 +66,26 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
             ) : null}
 
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold text-slate-900">Ingredients</h2>
+              <h2 className="text-xl font-semibold text-foreground">Ingredients</h2>
               <ul className="space-y-2">
                 {(recipe.ingredients as string[]).map((ingredient) => (
                   <li key={ingredient} className="flex items-start">
-                    <span className="mr-3 flex-shrink-0 text-slate-400">•</span>
-                    <span className="text-slate-700">{ingredient}</span>
+                    <span className="mr-3 flex-shrink-0 text-muted-foreground">•</span>
+                    <span className="text-foreground">{ingredient}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold text-slate-900">Instructions</h2>
+              <h2 className="text-xl font-semibold text-foreground">Instructions</h2>
               <ol className="space-y-2">
                 {(recipe.instructions as string[]).map((step, index) => (
                   <li key={step} className="flex items-start">
-                    <span className="mr-3 flex-shrink-0 font-semibold text-slate-400">
+                    <span className="mr-3 flex-shrink-0 font-semibold text-muted-foreground">
                       {index + 1}.
                     </span>
-                    <span className="text-slate-700">{step}</span>
+                    <span className="text-foreground">{step}</span>
                   </li>
                 ))}
               </ol>

@@ -34,6 +34,6 @@ export default defineConfig({
   datasource: {
     url,
     directUrl,
-    adapter: () => new PrismaPg({ connectionString: url }),
+    adapter: () => new PrismaPg({ connectionString: directUrl }),
   },
 });

@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/prisma';
-import type { RecipeInput, RecipeRecord } from '@/lib/types';
+import type { RecipeInput, RecipeRecord, RecipeSearchParams } from '@/lib/types';
 
 type RecipeRow = {
   id: string;
@@ -10,6 +10,8 @@ type RecipeRow = {
   ingredients: unknown;
   instructions: unknown;
   image_path: string | null;
+  tags: string[];
+  cook_time: number | null;
   created_at: Date;
   updated_at: Date;
 };
@@ -27,6 +29,8 @@ function toRecipeRecord(recipe: RecipeRow): RecipeRecord {
     ...recipe,
     ingredients: toStringArray(recipe.ingredients),
     instructions: toStringArray(recipe.instructions),
+    tags: recipe.tags ?? [],
+    cook_time: recipe.cook_time ?? null,
   };
 }
 
@@ -39,9 +43,30 @@ export async function getCurrentUser() {
   return data.user;
 }
 
-export async function listRecipesForUser(userId: string): Promise<RecipeRecord[]> {
+export async function listRecipesForUser(
+  userId: string,
+  search?: RecipeSearchParams,
+): Promise<RecipeRecord[]> {
+  const where: Record<string, unknown> = { user_id: userId };
+
+  if (search?.query) {
+    const q = search.query;
+    where.OR = [
+      { title: { contains: q, mode: 'insensitive' } },
+      { description: { contains: q, mode: 'insensitive' } },
+    ];
+  }
+
+  if (search?.tag) {
+    where.tags = { has: search.tag.toLowerCase() };
+  }
+
+  if (search?.maxCookTime) {
+    where.cook_time = { lte: search.maxCookTime, not: null };
+  }
+
   const recipes = await prisma.recipe.findMany({
-    where: { user_id: userId },
+    where,
     orderBy: { created_at: 'desc' },
   });
 
@@ -71,6 +96,8 @@ export async function createRecipeForUser(
       ingredients: input.ingredients,
       instructions: input.instructions,
       image_path: input.image_path ?? null,
+      tags: input.tags ?? [],
+      cook_time: input.cook_time ?? null,
     },
   });
 
@@ -93,6 +120,8 @@ export async function updateRecipeForUser(
       ...(input.ingredients !== undefined && { ingredients: input.ingredients }),
       ...(input.instructions !== undefined && { instructions: input.instructions }),
       ...(input.image_path !== undefined && { image_path: input.image_path }),
+      ...(input.tags !== undefined && { tags: input.tags }),
+      ...(input.cook_time !== undefined && { cook_time: input.cook_time }),
     },
   });
 
@@ -121,14 +150,6 @@ export async function uploadRecipeImage(userId: string, recipeId: string, image:
 }
 
 export function getRecipeImageUrl(imagePath: string | null) {
-  if (!imagePath) {
-    return null;
-  }
-
-  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!baseUrl) {
-    return null;
-  }
-
-  return `${baseUrl}/storage/v1/object/public/recipe-images/${imagePath}`;
+  if (!imagePath) return null;
+  return `/api/images?path=${encodeURIComponent(imagePath)}`;
 }

@@ -17,6 +17,8 @@ export default defineConfig({
         'src/lib/recipe-form.ts',
         'src/lib/env.ts',
         'src/lib/recipes.ts',
+        'src/lib/meal-plan.ts',
+        'src/lib/shopping-list.ts',
       ],
       thresholds: {
         lines: 70,
