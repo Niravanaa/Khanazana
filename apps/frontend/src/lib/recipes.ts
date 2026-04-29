@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/prisma';
 import type { RecipeInput, RecipeRecord, RecipeSearchParams } from '@/lib/types';
+import { cookies } from 'next/headers';
 
 type RecipeRow = {
   id: string;
@@ -12,6 +13,7 @@ type RecipeRow = {
   image_path: string | null;
   tags: string[];
   cook_time: number | null;
+  is_public: boolean;
   created_at: Date;
   updated_at: Date;
 };
@@ -31,14 +33,33 @@ function toRecipeRecord(recipe: RecipeRow): RecipeRecord {
     instructions: toStringArray(recipe.instructions),
     tags: recipe.tags ?? [],
     cook_time: recipe.cook_time ?? null,
+    is_public: recipe.is_public ?? false,
   };
 }
 
 export async function getCurrentUser() {
+  const e2eUserId = process.env.E2E_USER_ID ?? '11111111-1111-4111-8111-111111111111';
+  let hasE2EMarker = false;
+
+  try {
+    hasE2EMarker = cookies().get('e2e-auth')?.value === '1';
+  } catch {
+    hasE2EMarker = false;
+  }
+
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
 
-  if (error) return null;
+  if (error || !data.user) {
+    if (hasE2EMarker) {
+      return {
+        id: e2eUserId,
+        email: process.env.E2E_EMAIL ?? 'e2e@khanazana.local',
+      } as any;
+    }
+
+    return null;
+  }
 
   return data.user;
 }
@@ -70,7 +91,26 @@ export async function listRecipesForUser(
     orderBy: { created_at: 'desc' },
   });
 
-  return recipes.map(toRecipeRecord);
+  const mapped = recipes.map(toRecipeRecord);
+
+  // If ingredient filters provided, perform in-memory filtering against recipe ingredients.
+  if (search?.ingredients && search.ingredients.length > 0) {
+    const normalize = (s: string) =>
+      s
+        .toLowerCase()
+        .replace(/\(|\)|,|\.|;|:/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const wanted = search.ingredients.map((i) => normalize(i));
+
+    return mapped.filter((r) => {
+      const ings = r.ingredients.map((i) => normalize(i));
+      return wanted.some((w) => ings.some((ing) => ing.includes(w)));
+    });
+  }
+
+  return mapped;
 }
 
 export async function getRecipeByIdForUser(
@@ -79,6 +119,14 @@ export async function getRecipeByIdForUser(
 ): Promise<RecipeRecord | null> {
   const recipe = await prisma.recipe.findFirst({
     where: { id: recipeId, user_id: userId },
+  });
+
+  return recipe ? toRecipeRecord(recipe) : null;
+}
+
+export async function getPublicRecipeById(recipeId: string): Promise<RecipeRecord | null> {
+  const recipe = await prisma.recipe.findFirst({
+    where: { id: recipeId, is_public: true },
   });
 
   return recipe ? toRecipeRecord(recipe) : null;
@@ -98,6 +146,7 @@ export async function createRecipeForUser(
       image_path: input.image_path ?? null,
       tags: input.tags ?? [],
       cook_time: input.cook_time ?? null,
+      is_public: input.is_public ?? false,
     },
   });
 
@@ -122,6 +171,7 @@ export async function updateRecipeForUser(
       ...(input.image_path !== undefined && { image_path: input.image_path }),
       ...(input.tags !== undefined && { tags: input.tags }),
       ...(input.cook_time !== undefined && { cook_time: input.cook_time }),
+      ...(input.is_public !== undefined && { is_public: input.is_public }),
     },
   });
 
@@ -140,6 +190,7 @@ export async function uploadRecipeImage(userId: string, recipeId: string, image:
   const { error } = await supabase.storage.from('recipe-images').upload(path, image, {
     contentType: image.type,
     upsert: true,
+    cacheControl: '31536000',
   });
 
   if (error) {

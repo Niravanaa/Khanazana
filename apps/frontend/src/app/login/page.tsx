@@ -16,6 +16,7 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
         width={180}
         height={48}
         className="invert dark:invert-0"
+        loading="lazy"
       />
       <Card className="w-full max-w-md">
         <CardHeader>

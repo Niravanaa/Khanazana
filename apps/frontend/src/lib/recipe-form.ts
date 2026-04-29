@@ -35,9 +35,11 @@ export function buildRecipeInput(formData: FormData): RecipeInput {
     .map((s) => s.trim())
     .filter(Boolean);
 
+  const is_public = formData.get('is_public') === 'true';
+
   if (!title) throw new Error('Recipe title is required.');
   if (ingredients.length === 0) throw new Error('At least one ingredient is required.');
   if (instructions.length === 0) throw new Error('At least one instruction step is required.');
 
-  return { title, description, ingredients, instructions, tags, cook_time };
+  return { title, description, ingredients, instructions, tags, cook_time, is_public };
 }

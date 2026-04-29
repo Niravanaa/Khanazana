@@ -20,8 +20,8 @@ export default function HomePage() {
               width={200}
               height={54}
               className="mb-2 invert dark:invert-0"
+              loading="lazy"
             />
-            <CardDescription>Discover and share recipes with ease</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row">

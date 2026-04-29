@@ -5,6 +5,8 @@ import { RecipeForm } from '@/components/recipe-form';
 import { getCurrentUser } from '@/lib/recipes';
 import { createRecipeAction } from '@/app/recipes/actions';
 
+export const dynamic = 'force-dynamic';
+
 export default async function NewRecipePage() {
   const user = await getCurrentUser();
   if (!user) {

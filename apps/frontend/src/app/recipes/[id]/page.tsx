@@ -4,7 +4,10 @@ import { notFound, redirect } from 'next/navigation';
 import { deleteRecipeAction } from '@/app/recipes/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CopyLinkButton } from '@/components/copy-link-button';
 import { getCurrentUser, getRecipeByIdForUser, getRecipeImageUrl } from '@/lib/recipes';
+
+export const dynamic = 'force-dynamic';
 
 export default async function RecipeDetailPage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
@@ -32,8 +35,17 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl">{recipe.title}</CardTitle>
-            <CardDescription>{recipe.description}</CardDescription>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <CardTitle className="text-3xl">{recipe.title}</CardTitle>
+                <CardDescription>{recipe.description}</CardDescription>
+              </div>
+              {recipe.is_public && (
+                <span className="mt-1 shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                  Public
+                </span>
+              )}
+            </div>
             {(recipe.cook_time || recipe.tags.length > 0) && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {recipe.cook_time && (
@@ -60,6 +72,7 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
                   alt={recipe.title}
                   fill
                   className="object-cover"
+                  loading="lazy"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 600px"
                 />
               </div>
@@ -93,10 +106,11 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
           </CardContent>
         </Card>
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link href={`/recipes/${recipe.id}/edit`}>
             <Button>Edit Recipe</Button>
           </Link>
+          {recipe.is_public && <CopyLinkButton path={`/recipes/public/${recipe.id}`} />}
           <form action={deleteAction}>
             <Button type="submit" variant="destructive">
               Delete Recipe

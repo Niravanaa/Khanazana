@@ -69,6 +69,8 @@ const RECIPES = [
       'Stir in cream, simmer on low for 5 minutes.',
       'Garnish with fresh coriander and serve with naan or rice.',
     ],
+    cook_time: 45,
+    tags: ['indian', 'curry', 'chicken'],
   },
   {
     title: 'Dal Tadka',
@@ -97,6 +99,8 @@ const RECIPES = [
       'Pour the tempering over the dal and stir.',
       'Garnish with coriander and serve hot with roti or rice.',
     ],
+    cook_time: 30,
+    tags: ['indian', 'vegan', 'lentils'],
   },
   {
     title: 'Chicken Biryani',
@@ -124,6 +128,8 @@ const RECIPES = [
       'Seal the pot with foil and cook on low heat for 25 minutes (dum).',
       'Gently mix before serving with raita.',
     ],
+    cook_time: 90,
+    tags: ['indian', 'rice', 'chicken'],
   },
   {
     title: 'Palak Paneer',
@@ -151,6 +157,8 @@ const RECIPES = [
       'Add paneer and cream, season with garam masala and salt.',
       'Simmer for 3 minutes and serve with naan or jeera rice.',
     ],
+    cook_time: 30,
+    tags: ['indian', 'vegetarian', 'paneer'],
   },
   {
     title: 'Aloo Gobi',
@@ -179,6 +187,8 @@ const RECIPES = [
       'Uncover, increase heat, and stir-fry for 2 minutes until edges are golden.',
       'Finish with garam masala and fresh coriander.',
     ],
+    cook_time: 25,
+    tags: ['indian', 'vegan', 'vegetables'],
   },
 ];
 

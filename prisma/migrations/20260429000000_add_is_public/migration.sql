@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "recipes" ADD COLUMN IF NOT EXISTS "is_public" BOOLEAN NOT NULL DEFAULT false;

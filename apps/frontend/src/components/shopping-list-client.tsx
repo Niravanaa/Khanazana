@@ -87,9 +87,16 @@ function ConsolidationModal({ pair, onMerge, onKeepBoth }: ConsolidationModalPro
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-lg">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="consolidation-heading"
+        className="w-full max-w-md rounded-xl border border-border bg-card shadow-lg"
+      >
         <div className="border-b border-border px-5 py-4">
-          <h2 className="text-sm font-semibold text-foreground">Similar items found</h2>
+          <h2 id="consolidation-heading" className="text-sm font-semibold text-foreground">
+            Similar items found
+          </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             These two items look like duplicates. Merge them into one?
           </p>
@@ -109,8 +116,14 @@ function ConsolidationModal({ pair, onMerge, onKeepBoth }: ConsolidationModalPro
 
           {/* Editable merged text */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Merged item text</label>
+            <label
+              htmlFor="consolidation-merged"
+              className="text-xs font-medium text-muted-foreground"
+            >
+              Merged item text
+            </label>
             <input
+              id="consolidation-merged"
               ref={inputRef}
               value={merged}
               onChange={(e) => setMerged(e.target.value)}
@@ -119,17 +132,17 @@ function ConsolidationModal({ pair, onMerge, onKeepBoth }: ConsolidationModalPro
           </div>
         </div>
 
-        <div className="flex gap-2 border-t border-border px-5 py-4">
+        <div className="flex flex-col sm:flex-row gap-2 border-t border-border px-5 py-4">
           <button
             onClick={onKeepBoth}
-            className="flex-1 rounded-md border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className="w-full sm:flex-1 rounded-md border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           >
             Keep both
           </button>
           <button
             onClick={() => onMerge(pair.item1.id, pair.item2.id, merged)}
             disabled={!merged.trim()}
-            className="flex-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="w-full sm:flex-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             Merge
           </button>
@@ -156,11 +169,23 @@ export function ShoppingListClient({ items, week, exportUrl }: ShoppingListClien
     }
   }, [items, checked, similarPairs]);
 
-  const currentPair = pendingPairs[0] ?? null;
+  // Filter out pairs where either item has been deleted
+  const validPairs = useMemo(() => {
+    const itemIds = new Set(items.map((i) => i.id));
+    return pendingPairs.filter((p) => itemIds.has(p.item1.id) && itemIds.has(p.item2.id));
+  }, [pendingPairs, items]);
+
+  const currentPair = validPairs[0] ?? null;
 
   function handleMerge(keepId: string, removeId: string, newIngredient: string) {
     startTransition(() => consolidateItemsAction(keepId, removeId, newIngredient));
-    setPendingPairs((prev) => prev.slice(1));
+    setPendingPairs((prev) =>
+      prev.filter(
+        (p) =>
+          !(p.item1.id === keepId && p.item2.id === removeId) &&
+          !(p.item1.id === removeId && p.item2.id === keepId),
+      ),
+    );
   }
 
   function handleKeepBoth() {
@@ -180,7 +205,7 @@ export function ShoppingListClient({ items, week, exportUrl }: ShoppingListClien
         <div className="mb-4 flex justify-end">
           <a
             href={exportUrl}
-            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+            className="w-full sm:w-auto rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent text-center"
           >
             Export CSV
           </a>
@@ -201,7 +226,7 @@ export function ShoppingListClient({ items, week, exportUrl }: ShoppingListClien
                   type="checkbox"
                   checked={item.bought}
                   onChange={() => handleToggle(item.id)}
-                  className="h-4 w-4 accent-primary"
+                  className="h-5 w-5 accent-primary"
                 />
                 <span
                   className={item.bought ? 'text-muted-foreground line-through' : 'text-foreground'}

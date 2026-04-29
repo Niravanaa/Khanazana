@@ -6,6 +6,8 @@ import { getWeekStart, weekStartParam } from '@/lib/meal-plan';
 import { ShoppingListClient } from '@/components/shopping-list-client';
 import { WeekPicker } from '@/components/week-picker';
 
+export const dynamic = 'force-dynamic';
+
 function parseWeekStart(param: string | undefined): Date {
   if (param) {
     const d = new Date(param + 'T00:00:00Z');

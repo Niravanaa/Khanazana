@@ -44,7 +44,8 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
   const [view, setView] = useState<View>('list');
   const [slot, setSlot] = useState<MealSlot | null>(null);
   const [failedImages, setFailedImages] = useState<Record<string, true>>({});
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch('/api/recipes')
@@ -61,6 +62,41 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  // Focus search input on open (replaces autoFocus prop to satisfy jsx-a11y/no-autofocus)
+  useEffect(() => {
+    searchRef.current?.focus();
+  }, []);
+
+  // Focus trap: keep Tab/Shift+Tab cycling within the dialog
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    function onTab(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return;
+      const focusable = Array.from(
+        dialog!.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    dialog.addEventListener('keydown', onTab);
+    return () => dialog.removeEventListener('keydown', onTab);
+  }, []);
+
   const filtered = recipes.filter((r) => r.title.toLowerCase().includes(query.toLowerCase()));
 
   function hasImage(recipe: Recipe): boolean {
@@ -73,23 +109,35 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
   }
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose();
-      }}
-    >
-      <div className="flex w-full max-w-lg flex-col rounded-xl border border-border bg-card shadow-lg">
-        {/* Header */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop — click to close, hidden from assistive tech */}
+      <button
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recipe-picker-heading"
+        className="relative flex w-full max-w-lg flex-col rounded-xl border border-border bg-card shadow-lg"
+      >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold capitalize text-foreground">Add to {day}</h2>
+          <h2
+            id="recipe-picker-heading"
+            className="text-sm font-semibold capitalize text-foreground"
+          >
+            Add to {day}
+          </h2>
           <div className="flex items-center gap-2">
             <div className="flex overflow-hidden rounded-md border border-border text-xs">
               <button
                 onClick={() => setView('list')}
                 className={`px-2.5 py-1 transition-colors ${view === 'list' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                 aria-label="List view"
+                aria-pressed={view === 'list'}
               >
                 ☰
               </button>
@@ -97,6 +145,7 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
                 onClick={() => setView('card')}
                 className={`px-2.5 py-1 transition-colors ${view === 'card' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                 aria-label="Card view"
+                aria-pressed={view === 'card'}
               >
                 ⊞
               </button>
@@ -117,7 +166,8 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
             <button
               key={s.value}
               onClick={() => setSlot(s.value)}
-              className={`flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
+              aria-pressed={slot === s.value}
+              className={`flex-1 rounded-md py-2.5 text-xs font-medium transition-colors ${
                 slot === s.value
                   ? 'bg-primary text-primary-foreground'
                   : 'border border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
@@ -131,15 +181,16 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
         {/* Search */}
         <div className="px-4 py-3">
           <Input
-            autoFocus
+            ref={searchRef}
             placeholder="Search recipes..."
+            aria-label="Search recipes"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
 
         {/* Results */}
-        <div className="max-h-72 overflow-y-auto px-4 pb-4">
+        <div className="max-h-[50vh] overflow-y-auto px-4 pb-4">
           {!slot && (
             <p className="py-4 text-center text-sm text-muted-foreground">
               Select a meal type above first.
@@ -157,7 +208,8 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
                 <li key={recipe.id}>
                   <button
                     onClick={() => handleSelect(recipe.id)}
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
+                    aria-label={recipe.title}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left hover:bg-accent hover:text-accent-foreground"
                   >
                     <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded bg-secondary">
                       {hasImage(recipe) ? (
@@ -167,6 +219,7 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
                           fill
                           sizes="32px"
                           className="object-cover"
+                          loading="lazy"
                           onError={() =>
                             setFailedImages((prev) => ({
                               ...prev,
@@ -200,6 +253,7 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
                   <button
                     key={recipe.id}
                     onClick={() => handleSelect(recipe.id)}
+                    aria-label={recipe.title}
                     className="group flex flex-col overflow-hidden rounded-lg border border-border bg-background text-left transition-all hover:border-primary hover:shadow-sm"
                   >
                     <div className="relative h-24 w-full shrink-0 overflow-hidden bg-secondary">
@@ -210,6 +264,7 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
                           fill
                           sizes="(max-width: 640px) 50vw, 160px"
                           className="object-cover transition-transform group-hover:scale-105"
+                          loading="lazy"
                           onError={() =>
                             setFailedImages((prev) => ({
                               ...prev,

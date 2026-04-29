@@ -51,6 +51,7 @@ const MOCK_RECIPE = {
   image_path: null,
   tags: [],
   cook_time: null,
+  is_public: false,
   created_at: new Date(),
   updated_at: new Date(),
 };
@@ -169,6 +170,7 @@ describe('createRecipeForUser', () => {
         image_path: null,
         tags: [],
         cook_time: null,
+        is_public: false,
       },
     });
     expect(result).toEqual(MOCK_RECIPE);

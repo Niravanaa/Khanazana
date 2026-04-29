@@ -24,7 +24,8 @@ export function ThemeToggle({ showLabel = false }: ThemeToggleProps) {
     <button
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent/50 hover:text-accent-foreground lg:px-3"
+      aria-pressed={dark}
+      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
     >
       {dark ? (
         <svg
@@ -58,7 +59,7 @@ export function ThemeToggle({ showLabel = false }: ThemeToggleProps) {
           <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
         </svg>
       )}
-      {showLabel && <span className="hidden lg:block">{dark ? 'Light mode' : 'Dark mode'}</span>}
+      {showLabel && <span>{dark ? 'Light mode' : 'Dark mode'}</span>}
     </button>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +32,7 @@ function emptyIngredient(): IngredientRow {
 }
 
 export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormProps) {
+  const [isPublic, setIsPublic] = useState(initialRecipe?.is_public ?? false);
   const [ingredients, setIngredients] = useState<IngredientRow[]>(
     initialRecipe?.ingredients?.length
       ? initialRecipe.ingredients.map(parseIngredientString)
@@ -41,6 +42,7 @@ export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormPro
   const [instructions, setInstructions] = useState<string[]>(
     initialRecipe?.instructions?.length ? initialRecipe.instructions : [''],
   );
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   function updateIngredient(index: number, field: keyof IngredientRow, value: string) {
     setIngredients((prev) =>
@@ -108,6 +110,26 @@ export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormPro
             placeholder="e.g. vegetarian, quick"
           />
         </div>
+      </div>
+
+      {/* Visibility */}
+      <div className="flex items-center justify-between rounded-lg border border-border p-4">
+        <div>
+          <p className="text-sm font-medium text-foreground">Public recipe</p>
+          <p className="text-xs text-muted-foreground">Anyone with the link can view this recipe</p>
+        </div>
+        <input type="hidden" name="is_public" value={String(isPublic)} />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isPublic}
+          onClick={() => setIsPublic((v) => !v)}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${isPublic ? 'bg-primary' : 'bg-input'}`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${isPublic ? 'translate-x-5' : 'translate-x-0'}`}
+          />
+        </button>
       </div>
 
       {/* Ingredients */}
@@ -203,7 +225,48 @@ export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormPro
       {/* Image */}
       <div className="space-y-2">
         <Label htmlFor="image">Recipe Image (optional)</Label>
-        <Input id="image" name="image" type="file" accept="image/*" />
+        <Input
+          id="image"
+          name="image"
+          type="file"
+          accept="image/*"
+          ref={fileInputRef as any}
+          onChange={async (e) => {
+            const files = (e.target as HTMLInputElement).files;
+            if (!files || files.length === 0) return;
+            const file = files[0];
+            if (!file.type.startsWith('image/')) return;
+
+            // Compress image using canvas
+            try {
+              const imgBitmap = await createImageBitmap(file);
+              const MAX_WIDTH = 1600;
+              const scale = Math.min(1, MAX_WIDTH / imgBitmap.width);
+              const cw = Math.round(imgBitmap.width * scale);
+              const ch = Math.round(imgBitmap.height * scale);
+              const canvas = document.createElement('canvas');
+              canvas.width = cw;
+              canvas.height = ch;
+              const ctx = canvas.getContext('2d');
+              if (ctx) ctx.drawImage(imgBitmap, 0, 0, cw, ch);
+              const blob: Blob | null = await new Promise((resolve) =>
+                canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.8),
+              );
+              if (blob) {
+                const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                  type: 'image/jpeg',
+                });
+                // Replace the input FileList with the compressed file
+                const dt = new DataTransfer();
+                dt.items.add(compressed);
+                (e.target as HTMLInputElement).files = dt.files;
+              }
+            } catch (err) {
+              // If compression fails, leave original file
+              // console.warn('Image compression failed', err);
+            }
+          }}
+        />
       </div>
 
       <Button type="submit">{submitLabel}</Button>

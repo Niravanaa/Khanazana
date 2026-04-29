@@ -5,6 +5,8 @@ import { RecipeForm } from '@/components/recipe-form';
 import { getCurrentUser, getRecipeByIdForUser } from '@/lib/recipes';
 import { updateRecipeAction } from '@/app/recipes/actions';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditRecipePage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) {

@@ -45,6 +45,7 @@ describe('buildRecipeInput', () => {
       instructions: ['Marinate', 'Grill', 'Serve'],
       tags: [],
       cook_time: null,
+      is_public: false,
     });
   });
 
