@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginForm } from './LoginForm';
 
@@ -8,7 +9,14 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
       : searchParams.error;
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+    <main className="flex flex-col items-center justify-center min-h-screen bg-background p-4 gap-6">
+      <Image
+        src="/logo.png"
+        alt="Khanazana"
+        width={180}
+        height={48}
+        className="invert dark:invert-0"
+      />
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Sign in to Khanazana</CardTitle>

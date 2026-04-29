@@ -4,6 +4,60 @@
 
 :root {
   color-scheme: light;
+
+  --background: 138 45% 97%;
+  --foreground: 150 45% 12%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 150 45% 12%;
+
+  --primary: 142 55% 28%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 138 30% 92%;
+  --secondary-foreground: 150 45% 12%;
+
+  --muted: 138 25% 93%;
+  --muted-foreground: 142 20% 45%;
+
+  --accent: 152 40% 88%;
+  --accent-foreground: 150 45% 12%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 140 25% 88%;
+  --input: 140 25% 88%;
+  --ring: 142 55% 28%;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: 150 30% 8%;
+  --foreground: 138 35% 93%;
+
+  --card: 150 25% 13%;
+  --card-foreground: 138 35% 93%;
+
+  --primary: 142 45% 55%;
+  --primary-foreground: 150 30% 8%;
+
+  --secondary: 148 20% 20%;
+  --secondary-foreground: 138 35% 93%;
+
+  --muted: 148 20% 20%;
+  --muted-foreground: 140 20% 62%;
+
+  --accent: 148 25% 22%;
+  --accent-foreground: 138 35% 93%;
+
+  --destructive: 0 63% 45%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 145 18% 22%;
+  --input: 145 18% 22%;
+  --ring: 142 45% 55%;
 }
 
 body {
@@ -18,6 +72,6 @@ body {
     Arial,
     Apple Color Emoji,
     Segoe UI Emoji;
-  background: #f8fafc;
-  color: #0f172a;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }

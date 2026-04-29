@@ -49,6 +49,8 @@ const MOCK_RECIPE = {
   ingredients: ['chicken', 'cream'],
   instructions: ['cook'],
   image_path: null,
+  tags: [],
+  cook_time: null,
   created_at: new Date(),
   updated_at: new Date(),
 };
@@ -90,6 +92,33 @@ describe('listRecipesForUser', () => {
       orderBy: { created_at: 'desc' },
     });
     expect(result).toEqual([MOCK_RECIPE]);
+  });
+
+  it('applies query search filter', async () => {
+    mockFindMany.mockResolvedValue([]);
+
+    await listRecipesForUser(USER_ID, { query: 'chicken' });
+
+    const call = mockFindMany.mock.calls[0][0] as { where: Record<string, unknown> };
+    expect(call.where).toHaveProperty('OR');
+  });
+
+  it('applies tag filter lowercased', async () => {
+    mockFindMany.mockResolvedValue([]);
+
+    await listRecipesForUser(USER_ID, { tag: 'Indian' });
+
+    const call = mockFindMany.mock.calls[0][0] as { where: Record<string, unknown> };
+    expect(call.where).toHaveProperty('tags', { has: 'indian' });
+  });
+
+  it('applies maxCookTime filter', async () => {
+    mockFindMany.mockResolvedValue([]);
+
+    await listRecipesForUser(USER_ID, { maxCookTime: 30 });
+
+    const call = mockFindMany.mock.calls[0][0] as { where: Record<string, unknown> };
+    expect(call.where).toHaveProperty('cook_time', { lte: 30, not: null });
   });
 });
 
@@ -138,6 +167,8 @@ describe('createRecipeForUser', () => {
         ingredients: input.ingredients,
         instructions: input.instructions,
         image_path: null,
+        tags: [],
+        cook_time: null,
       },
     });
     expect(result).toEqual(MOCK_RECIPE);
@@ -157,6 +188,25 @@ describe('createRecipeForUser', () => {
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ image_path: 'user/recipe.jpg' }),
+      }),
+    );
+  });
+
+  it('includes tags and cook_time when provided', async () => {
+    mockCreate.mockResolvedValue(MOCK_RECIPE);
+
+    await createRecipeForUser(USER_ID, {
+      title: 'Test',
+      description: '',
+      ingredients: ['a'],
+      instructions: ['b'],
+      tags: ['vegetarian'],
+      cook_time: 30,
+    });
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ tags: ['vegetarian'], cook_time: 30 }),
       }),
     );
   });
@@ -247,15 +297,11 @@ describe('getRecipeImageUrl', () => {
     expect(getRecipeImageUrl(null)).toBeNull();
   });
 
-  it('returns null when NEXT_PUBLIC_SUPABASE_URL is not set', () => {
-    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '');
-    expect(getRecipeImageUrl('user/recipe.jpg')).toBeNull();
+  it('returns a proxy URL for a given path', () => {
+    expect(getRecipeImageUrl('user/recipe.jpg')).toBe('/api/images?path=user%2Frecipe.jpg');
   });
 
-  it('returns the full public storage URL', () => {
-    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:54331');
-    expect(getRecipeImageUrl('user/recipe.jpg')).toBe(
-      'http://localhost:54331/storage/v1/object/public/recipe-images/user/recipe.jpg',
-    );
+  it('encodes special characters in the path', () => {
+    expect(getRecipeImageUrl('user/my recipe.jpg')).toBe('/api/images?path=user%2Fmy%20recipe.jpg');
   });
 });

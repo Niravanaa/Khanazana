@@ -12,11 +12,11 @@ export default async function NewRecipePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-2xl">
         <Link
           href="/recipes"
-          className="mb-6 inline-flex text-sm text-slate-600 hover:text-slate-900"
+          className="mb-6 inline-flex text-sm text-muted-foreground hover:text-foreground"
         >
           ← Back to recipes
         </Link>

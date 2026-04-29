@@ -7,14 +7,40 @@ function createPrismaClient() {
     throw new Error('DATABASE_URL environment variable is not set');
   }
 
-  const adapter = new PrismaPg({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
+  const isLocal = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+  const adapter = new PrismaPg({
+    connectionString: dbUrl,
+    ssl: isLocal ? false : { rejectUnauthorized: false },
+  });
   return new PrismaClient({ adapter });
+}
+
+function createMissingDbProxy(): PrismaClient {
+  return new Proxy({} as PrismaClient, {
+    get() {
+      throw new Error('DATABASE_URL environment variable is not set');
+    },
+  });
 }
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+function resolvePrismaClient(): PrismaClient {
+  if (globalForPrisma.prisma) {
+    return globalForPrisma.prisma;
+  }
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+  if (!process.env.DATABASE_URL) {
+    return createMissingDbProxy();
+  }
+
+  const client = createPrismaClient();
+
+  if (process.env.NODE_ENV !== 'production') {
+    globalForPrisma.prisma = client;
+  }
+
+  return client;
 }
+
+export const prisma = resolvePrismaClient();

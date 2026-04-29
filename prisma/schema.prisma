@@ -7,16 +7,73 @@ datasource db {
 }
 
 model Recipe {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id      String   @db.Uuid
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String          @db.Uuid
   title        String
-  description  String   @default("")
-  ingredients  Json     @default("[]")
-  instructions Json     @default("[]")
+  description  String          @default("")
+  ingredients  Json            @default("[]")
+  instructions Json            @default("[]")
   image_path   String?
-  created_at   DateTime @default(now()) @db.Timestamptz(6)
-  updated_at   DateTime @updatedAt @db.Timestamptz(6)
+  tags         String[]        @default([])
+  cook_time    Int?
+  created_at   DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime        @updatedAt @db.Timestamptz(6)
+  meal_entries MealPlanEntry[]
 
   @@index([user_id, created_at(sort: Desc)])
   @@map("recipes")
+}
+
+model MealPlan {
+  id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String          @db.Uuid
+  week_start DateTime        @db.Date
+  created_at DateTime        @default(now()) @db.Timestamptz(6)
+  entries    MealPlanEntry[]
+
+  @@unique([user_id, week_start])
+  @@index([user_id, week_start(sort: Desc)])
+  @@map("meal_plans")
+}
+
+model MealPlanEntry {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan_id    String    @db.Uuid
+  recipe_id  String    @db.Uuid
+  day        DayOfWeek
+  meal_slot  MealSlot
+  plan       MealPlan  @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+  recipe     Recipe    @relation(fields: [recipe_id], references: [id], onDelete: Cascade)
+
+  @@unique([plan_id, day, meal_slot, recipe_id])
+  @@map("meal_plan_entries")
+}
+
+enum DayOfWeek {
+  monday
+  tuesday
+  wednesday
+  thursday
+  friday
+  saturday
+  sunday
+}
+
+enum MealSlot {
+  breakfast
+  lunch
+  dinner
+  snacks
+}
+
+model ShoppingListItem {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  week_start DateTime @db.Date
+  ingredient String
+  bought     Boolean  @default(false)
+
+  @@unique([user_id, week_start, ingredient])
+  @@index([user_id, week_start])
+  @@map("shopping_list_items")
 }

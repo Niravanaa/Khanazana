@@ -1,8 +1,12 @@
-![Khanazana preview](./Documentation/preview.png)
+![](https://i.imgur.com/Ya8aS22.png)
 
-# Khanazana
+<div align="center">
+<img src="https://i.imgur.com/t5dwnPj.png"/>
+<p>A recipe manager that lets you store, organize recipes, plan weekly meals, and generate shopping lists — built with Next.js, Supabase, and Prisma.
+</p>
+</div>
 
-A recipe manager that lets you store, organise, and eventually plan meals — built with Next.js, Supabase, and Prisma.
+<div align="center">
 
 [![Contributors](https://img.shields.io/github/contributors/Niravanaa/Khanazana?style=flat-square)](https://github.com/Niravanaa/Khanazana/graphs/contributors)
 [![CI](https://github.com/Niravanaa/Khanazana/actions/workflows/ci.yml/badge.svg)](https://github.com/Niravanaa/Khanazana/actions/workflows/ci.yml)
@@ -12,14 +16,18 @@ A recipe manager that lets you store, organise, and eventually plan meals — bu
 [![License](https://img.shields.io/github/license/Niravanaa/Khanazana?style=flat-square)](./LICENSE)
 [![codecov](https://codecov.io/gh/Niravanaa/Khanazana/branch/main/graph/badge.svg)](https://codecov.io/gh/Niravanaa/Khanazana)
 
+</div>
+
 ## Features
 
 - **Auth** — Google OAuth and email/password sign-in via Supabase Auth
-- **Recipe CRUD** — create, view, edit, and delete recipes with title, description, ingredients, and step-by-step instructions
-- **Image upload** — attach a photo to each recipe, stored in Supabase Storage
+- **Recipe management** — Create, view, edit, and delete recipes with title, description, ingredients, tags, and cook time
+- **Image upload** — Attach photos to recipes, stored in Supabase Storage
+- **Meal planning** — Plan weekly meals by assigning recipes to specific days and meal slots
+- **Shopping list** — Auto-generate organized shopping lists from meal plans with export capability
 - **Monorepo** — `pnpm` workspaces with `apps/frontend` (Next.js) and `packages/shared`
-- **Quality gates** — Husky pre-commit hooks, lint-staged, branch/commit message validation, and GitHub Actions CI (lint, type-check, tests)
-- **Test coverage** — Vitest unit tests with ≥ 70% coverage enforced on every PR
+- **Quality gates** — Husky pre-commit hooks, lint-staged, branch/commit message validation, and GitHub Actions CI (lint, type-check, tests, coverage upload)
+- **Test coverage** — Vitest unit tests with ≥ 70% coverage enforced on every PR, uploaded to codecov
 
 ## Quick start
 

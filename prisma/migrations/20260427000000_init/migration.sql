@@ -18,4 +18,3 @@ CREATE TABLE "recipes" (
 
 -- CreateIndex
 CREATE INDEX "recipes_user_id_created_at_idx" ON "recipes"("user_id", "created_at" DESC);
-
