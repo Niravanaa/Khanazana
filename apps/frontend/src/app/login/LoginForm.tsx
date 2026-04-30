@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -122,7 +121,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
         </div>
       </div>
 
-      <Link href="/auth/login" className="block">
+      <a href="/auth/login" className="block">
         <Button variant="outline" className="w-full gap-2">
           <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true">
             <path
@@ -144,7 +143,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
           </svg>
           Continue with Google
         </Button>
-      </Link>
+      </a>
     </div>
   );
 }

@@ -72,12 +72,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile=false
 
-      - name: Mark baseline migration as applied (idempotent)
-        run: pnpm prisma migrate resolve --applied 20260427000000_init
-        env:
-          DATABASE_URL: ${{ secrets.DIRECT_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-
       - name: Deploy migrations
         run: pnpm prisma migrate deploy
         env:

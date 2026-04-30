@@ -24,6 +24,14 @@ coverage/
 # TypeScript build info
 *.tsbuildinfo
 
+# act local secrets
+.secrets
+
+# Playwright
+e2e/.auth/
+playwright-report/
+test-results/
+
 # Supabase local state
 supabase/.branches/
 supabase/.temp/

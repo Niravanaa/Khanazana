@@ -18,7 +18,7 @@
   --secondary-foreground: 150 45% 12%;
 
   --muted: 138 25% 93%;
-  --muted-foreground: 142 20% 45%;
+  --muted-foreground: 142 20% 38%;
 
   --accent: 152 40% 88%;
   --accent-foreground: 150 45% 12%;
@@ -58,6 +58,12 @@
   --border: 145 18% 22%;
   --input: 145 18% 22%;
   --ring: 142 45% 55%;
+}
+
+/* Visible keyboard focus indicator using the design-system ring colour */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 body {

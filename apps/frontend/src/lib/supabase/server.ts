@@ -1,30 +1,27 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient, type CookieMethodsServer } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { getPublicEnv } from '@/lib/env';
+import { getServerEnv } from '@/lib/env';
 
 export function createSupabaseServerClient() {
   const cookieStore = cookies();
-  const { supabaseAnonKey, supabaseUrl } = getPublicEnv();
+  const { supabaseAnonKey, supabaseUrl } = getServerEnv();
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value, ...options });
-        } catch {
-          // Ignore when mutating cookies is not allowed in this context.
-        }
-      },
-      remove(name: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-        } catch {
-          // Ignore when mutating cookies is not allowed in this context.
-        }
-      },
+  const cookieMethods: CookieMethodsServer = {
+    getAll() {
+      return cookieStore.getAll();
     },
-  });
+    setAll(cookiesToSet) {
+      console.log(
+        '[supabase/server] setAll called with',
+        cookiesToSet.map((c) => c.name),
+      );
+      try {
+        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+      } catch (e) {
+        console.log('[supabase/server] setAll error:', e);
+      }
+    },
+  };
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, { cookies: cookieMethods });
 }

@@ -1,21 +1,38 @@
-import { NextResponse } from 'next/server';
-import { getAppUrl } from '@/lib/env';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createServerClient, type CookieMethodsServer } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+import { getServerEnv } from '@/lib/env';
 
-export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
 
   if (!code) {
-    return NextResponse.redirect(`${getAppUrl()}/login?error=missing_code`);
+    return NextResponse.redirect(`${origin}/login?error=missing_code`);
   }
 
-  const supabase = createSupabaseServerClient();
+  const { supabaseUrl, supabaseAnonKey } = getServerEnv();
+  const response = NextResponse.redirect(`${origin}/recipes`);
+
+  const cookieMethods: CookieMethodsServer = {
+    getAll() {
+      return request.cookies.getAll();
+    },
+    setAll(cookiesToSet) {
+      cookiesToSet.forEach(({ name, value, options }) =>
+        response.cookies.set(name, value, options),
+      );
+    },
+  };
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: cookieMethods,
+  });
+
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return NextResponse.redirect(`${getAppUrl()}/login?error=auth_callback_failed`);
+    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
-  return NextResponse.redirect(`${getAppUrl()}/recipes`);
+  return response;
 }

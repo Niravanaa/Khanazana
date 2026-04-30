@@ -26,7 +26,7 @@ function getInitials(title: string): string {
 
 function MealCard({ entry, onRemove }: { entry: MealPlanEntryWithRecipe; onRemove: () => void }) {
   return (
-    <div className="group relative overflow-hidden rounded-md" title={entry.recipe.title}>
+    <div className="relative overflow-hidden rounded-md" title={entry.recipe.title}>
       {entry.recipe.image_url ? (
         <Image
           src={entry.recipe.image_url}
@@ -34,6 +34,7 @@ function MealCard({ entry, onRemove }: { entry: MealPlanEntryWithRecipe; onRemov
           width={320}
           height={56}
           className="h-14 w-full object-cover"
+          loading="lazy"
         />
       ) : (
         <div className="flex h-14 w-full items-center justify-center bg-secondary text-xs font-semibold text-secondary-foreground">
@@ -47,8 +48,8 @@ function MealCard({ entry, onRemove }: { entry: MealPlanEntryWithRecipe; onRemov
       {/* Remove button */}
       <button
         onClick={onRemove}
-        className="absolute right-0.5 top-0.5 hidden h-4 w-4 items-center justify-center rounded bg-black/60 text-[10px] text-white group-hover:flex"
-        aria-label="Remove"
+        className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded bg-black/60 text-sm text-white"
+        aria-label={`Remove ${entry.recipe.title}`}
       >
         ×
       </button>
@@ -79,18 +80,19 @@ export function MealPlanGrid({ plan, days }: MealPlanGridProps) {
   return (
     <>
       <div className="overflow-x-auto">
-        <div className="flex min-w-[640px] gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           {days.map((day) => {
             const entries = entriesFor(day);
             return (
-              <div key={day} className="flex flex-1 flex-col gap-1">
+              <div key={day} className="w-full sm:flex-1 flex flex-col gap-1 min-w-0">
                 {/* Day header */}
                 <div className="pb-2 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {day.slice(0, 3)}
+                  <span className="sm:hidden capitalize">{day}</span>
+                  <span className="hidden sm:inline">{day.slice(0, 3)}</span>
                 </div>
 
                 {/* Meal cards */}
-                <div className="flex flex-1 flex-col gap-1 rounded-lg border border-border bg-card p-1">
+                <div className="flex flex-1 flex-col gap-1 rounded-lg border border-border bg-card p-2">
                   {entries.map((entry) => (
                     <MealCard
                       key={entry.id}
@@ -100,7 +102,8 @@ export function MealPlanGrid({ plan, days }: MealPlanGridProps) {
                   ))}
                   <button
                     onClick={() => setPickerDay(day)}
-                    className="mt-auto rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    className="mt-2 w-full rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground sm:mt-auto"
+                    aria-label={`Add recipe to ${day}`}
                   >
                     + Add
                   </button>

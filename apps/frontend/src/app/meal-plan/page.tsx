@@ -5,6 +5,8 @@ import { getOrCreateMealPlan, getWeekStart, weekStartParam } from '@/lib/meal-pl
 import { MealPlanGrid } from '@/components/meal-plan-grid';
 import { generateShoppingListAction } from '@/app/meal-plan/actions';
 
+export const dynamic = 'force-dynamic';
+
 const DAYS = [
   'monday',
   'tuesday',
@@ -67,14 +69,18 @@ export default async function MealPlanPage({ searchParams }: MealPlanPageProps) 
         <div className="mb-6 flex items-center justify-between">
           <Link
             href={`/meal-plan?week=${weekStartParam(prevWeek)}`}
-            className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-accent"
+            className="rounded-md border border-border px-3 py-2.5 text-sm text-foreground hover:bg-accent"
+            aria-label="Previous week"
           >
             ← Prev week
           </Link>
-          <span className="text-sm font-medium text-foreground">{formatWeekRange(weekStart)}</span>
+          <span className="text-sm font-medium text-foreground" aria-live="polite">
+            {formatWeekRange(weekStart)}
+          </span>
           <Link
             href={`/meal-plan?week=${weekStartParam(nextWeek)}`}
-            className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-accent"
+            className="rounded-md border border-border px-3 py-2.5 text-sm text-foreground hover:bg-accent"
+            aria-label="Next week"
           >
             Next week →
           </Link>

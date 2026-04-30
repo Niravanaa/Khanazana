@@ -6,6 +6,7 @@ export interface RecipeInput {
   image_path?: string | null;
   tags?: string[];
   cook_time?: number | null;
+  is_public?: boolean;
 }
 
 export interface RecipeRecord {
@@ -18,6 +19,7 @@ export interface RecipeRecord {
   image_path: string | null;
   tags: string[];
   cook_time: number | null;
+  is_public: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -26,4 +28,5 @@ export interface RecipeSearchParams {
   query?: string;
   tag?: string;
   maxCookTime?: number;
+  ingredients?: string[];
 }

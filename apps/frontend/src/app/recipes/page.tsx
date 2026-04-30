@@ -5,12 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getCurrentUser, getRecipeImageUrl, listRecipesForUser } from '@/lib/recipes';
 import { RecipeFilters } from '@/components/recipe-filters';
+import { ClearFiltersButton } from '@/components/clear-filters-button';
+
+export const dynamic = 'force-dynamic';
 
 interface RecipesPageProps {
   searchParams: {
     q?: string;
     tag?: string;
     maxCookTime?: string;
+    ingredients?: string;
   };
 }
 
@@ -25,9 +29,20 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
     query: searchParams.q,
     tag: searchParams.tag,
     maxCookTime: isNaN(maxCookTime!) ? undefined : maxCookTime,
+    ingredients: searchParams.ingredients
+      ? searchParams.ingredients
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : undefined,
   });
 
-  const hasFilters = !!(searchParams.q || searchParams.tag || searchParams.maxCookTime);
+  const hasFilters = !!(
+    searchParams.q ||
+    searchParams.tag ||
+    searchParams.maxCookTime ||
+    searchParams.ingredients
+  );
 
   return (
     <main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
@@ -46,6 +61,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
           initialQuery={searchParams.q}
           initialTag={searchParams.tag}
           initialMaxCookTime={searchParams.maxCookTime}
+          initialIngredients={searchParams.ingredients}
         />
 
         {recipes.length === 0 ? (
@@ -54,9 +70,9 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
               {hasFilters ? (
                 <>
                   <p className="text-muted-foreground">No recipes match your search.</p>
-                  <Link href="/recipes" className="mt-4">
-                    <Button variant="outline">Clear filters</Button>
-                  </Link>
+                  <div className="mt-4">
+                    <ClearFiltersButton />
+                  </div>
                 </>
               ) : (
                 <>
@@ -71,7 +87,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {recipes.map((recipe) => {
               const imageUrl = getRecipeImageUrl(recipe.image_path);
 
@@ -79,17 +95,18 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
                 <Link key={recipe.id} href={`/recipes/${recipe.id}`}>
                   <Card className="h-full overflow-hidden transition-all hover:shadow-lg">
                     {imageUrl ? (
-                      <div className="relative h-48 w-full bg-muted">
+                      <div className="relative h-36 w-full bg-muted sm:h-48">
                         <Image
                           src={imageUrl}
                           alt={recipe.title}
                           fill
                           className="object-cover"
+                          loading="lazy"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                       </div>
                     ) : (
-                      <div className="flex h-48 w-full items-center justify-center bg-secondary">
+                      <div className="flex h-36 w-full items-center justify-center bg-secondary sm:h-48">
                         <span className="text-3xl font-semibold tracking-wide text-secondary-foreground">
                           {recipe.title
                             .split(' ')
