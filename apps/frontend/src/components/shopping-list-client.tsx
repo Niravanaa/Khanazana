@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { track } from '@vercel/analytics';
 import { toggleItemAction, consolidateItemsAction } from '@/app/shopping-list/actions';
 import type { ShoppingListItemRecord } from '@/lib/shopping-list';
 
@@ -8,6 +9,7 @@ interface ShoppingListClientProps {
   items: ShoppingListItemRecord[];
   week: string;
   exportUrl: string;
+  generated?: boolean;
 }
 
 // ── Similarity helpers ──────────────────────────────────────────────────────
@@ -154,10 +156,14 @@ function ConsolidationModal({ pair, onMerge, onKeepBoth }: ConsolidationModalPro
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export function ShoppingListClient({ items, week, exportUrl }: ShoppingListClientProps) {
+export function ShoppingListClient({ items, week, exportUrl, generated }: ShoppingListClientProps) {
   const [, startTransition] = useTransition();
   const [pendingPairs, setPendingPairs] = useState<SimilarPair[]>([]);
   const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    if (generated) track('shopping_list_generated');
+  }, [generated]);
 
   const similarPairs = useMemo(() => findSimilarPairs(items), [items]);
 

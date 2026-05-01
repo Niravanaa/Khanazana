@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState, useTransition } from 'react';
+import { track } from '@vercel/analytics';
 import { addEntryAction, removeEntryAction } from '@/app/meal-plan/actions';
 import type { WeeklyMealPlan, DayOfWeek, MealSlot, MealPlanEntryWithRecipe } from '@/lib/meal-plan';
 import { RecipePicker } from '@/components/recipe-picker';
@@ -73,6 +74,7 @@ export function MealPlanGrid({ plan, days }: MealPlanGridProps) {
 
   function handleAdd(recipeId: string, slot: MealSlot) {
     if (!pickerDay) return;
+    track('meal_plan_updated');
     startTransition(() => addEntryAction(plan.id, recipeId, pickerDay, slot));
     setPickerDay(null);
   }

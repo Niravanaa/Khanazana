@@ -37,10 +37,10 @@ export function LoginForm({ initialError }: { initialError?: string }) {
   });
 
   useEffect(() => {
-    if (signInState.success || signUpState.success) {
+    if (signInState.success) {
       window.location.href = '/recipes';
     }
-  }, [signInState.success, signUpState.success]);
+  }, [signInState.success]);
 
   return (
     <div className="space-y-4">
@@ -90,27 +90,33 @@ export function LoginForm({ initialError }: { initialError?: string }) {
         </form>
       )}
 
-      {tab === 'signup' && (
-        <form action={signUpAction} className="space-y-3">
-          <ErrorMessage message={signUpState.error} />
-          <div className="space-y-1">
-            <Label htmlFor="signup-email">Email</Label>
-            <Input id="signup-email" name="email" type="email" autoComplete="email" required />
+      {tab === 'signup' &&
+        (signUpState.pendingConfirmation ? (
+          <div className="rounded-md bg-green-50 dark:bg-green-950 p-4 text-sm text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800 space-y-1">
+            <p className="font-medium">Check your email</p>
+            <p>We sent a confirmation link to your inbox. Click it to activate your account.</p>
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="signup-password">Password</Label>
-            <Input
-              id="signup-password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              minLength={6}
-              required
-            />
-          </div>
-          <SubmitButton label="Create Account" />
-        </form>
-      )}
+        ) : (
+          <form action={signUpAction} className="space-y-3">
+            <ErrorMessage message={signUpState.error} />
+            <div className="space-y-1">
+              <Label htmlFor="signup-email">Email</Label>
+              <Input id="signup-email" name="email" type="email" autoComplete="email" required />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="signup-password">Password</Label>
+              <Input
+                id="signup-password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+            </div>
+            <SubmitButton label="Create Account" />
+          </form>
+        ))}
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

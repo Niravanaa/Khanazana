@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { track } from '@vercel/analytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,7 +64,7 @@ export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormPro
   }
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-6" onSubmit={() => track('recipe_saved')}>
       {/* Title */}
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
