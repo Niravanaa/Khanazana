@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from 'react';
+import { track } from '@vercel/analytics';
 import { toggleItemAction, consolidateItemsAction } from '@/app/shopping-list/actions';
 import type { ShoppingListItemRecord } from '@/lib/shopping-list';
 
@@ -8,6 +9,7 @@ interface ShoppingListClientProps {
   items: ShoppingListItemRecord[];
   week: string;
   exportUrl: string;
+  generated?: boolean;
 }
 
 // ── Similarity helpers ──────────────────────────────────────────────────────
@@ -154,10 +156,19 @@ function ConsolidationModal({ pair, onMerge, onKeepBoth }: ConsolidationModalPro
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export function ShoppingListClient({ items, week, exportUrl }: ShoppingListClientProps) {
+export function ShoppingListClient({ items, week, exportUrl, generated }: ShoppingListClientProps) {
   const [, startTransition] = useTransition();
   const [pendingPairs, setPendingPairs] = useState<SimilarPair[]>([]);
   const [checked, setChecked] = useState(false);
+  const [optimisticItems, applyOptimisticToggle] = useOptimistic(
+    items,
+    (state, toggledId: string) =>
+      state.map((item) => (item.id === toggledId ? { ...item, bought: !item.bought } : item)),
+  );
+
+  useEffect(() => {
+    if (generated) track('shopping_list_generated');
+  }, [generated]);
 
   const similarPairs = useMemo(() => findSimilarPairs(items), [items]);
 
@@ -193,11 +204,14 @@ export function ShoppingListClient({ items, week, exportUrl }: ShoppingListClien
   }
 
   function handleToggle(itemId: string) {
-    startTransition(() => toggleItemAction(itemId, week));
+    startTransition(() => {
+      applyOptimisticToggle(itemId);
+      toggleItemAction(itemId, week);
+    });
   }
 
-  const pending = items.filter((i) => !i.bought);
-  const bought = items.filter((i) => i.bought);
+  const pending = optimisticItems.filter((i) => !i.bought);
+  const bought = optimisticItems.filter((i) => i.bought);
 
   return (
     <>
@@ -211,7 +225,7 @@ export function ShoppingListClient({ items, week, exportUrl }: ShoppingListClien
           </a>
         </div>
 
-        {items.length === 0 ? (
+        {optimisticItems.length === 0 ? (
           <p className="py-12 text-center text-muted-foreground">
             No items yet. Generate a shopping list from your meal plan.
           </p>

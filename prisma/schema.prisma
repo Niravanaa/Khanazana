@@ -20,9 +20,35 @@ model Recipe {
   created_at   DateTime        @default(now()) @db.Timestamptz(6)
   updated_at   DateTime        @updatedAt @db.Timestamptz(6)
   meal_entries MealPlanEntry[]
+  likes        RecipeLike[]
+  comments     RecipeComment[]
 
   @@index([user_id, created_at(sort: Desc)])
   @@map("recipes")
+}
+
+model RecipeLike {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  recipe_id  String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  recipe     Recipe   @relation(fields: [recipe_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, recipe_id])
+  @@index([recipe_id])
+  @@map("recipe_likes")
+}
+
+model RecipeComment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  recipe_id  String   @db.Uuid
+  body       String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  recipe     Recipe   @relation(fields: [recipe_id], references: [id], onDelete: Cascade)
+
+  @@index([recipe_id, created_at(sort: Asc)])
+  @@map("recipe_comments")
 }
 
 model MealPlan {

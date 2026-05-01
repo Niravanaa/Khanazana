@@ -25,7 +25,7 @@ function formatWeekRange(weekStart: Date): string {
 }
 
 interface ShoppingListPageProps {
-  searchParams: { week?: string };
+  searchParams: { week?: string; generated?: string };
 }
 
 export default async function ShoppingListPage({ searchParams }: ShoppingListPageProps) {
@@ -33,6 +33,7 @@ export default async function ShoppingListPage({ searchParams }: ShoppingListPag
   if (!user) redirect('/login');
 
   const weekStart = parseWeekStart(searchParams.week);
+  const generated = searchParams.generated === '1';
   const week = weekStartParam(weekStart);
   const [items, allWeeks] = await Promise.all([
     getShoppingList(user.id, weekStart),
@@ -63,7 +64,7 @@ export default async function ShoppingListPage({ searchParams }: ShoppingListPag
           </div>
         )}
 
-        <ShoppingListClient items={items} week={week} exportUrl={exportUrl} />
+        <ShoppingListClient items={items} week={week} exportUrl={exportUrl} generated={generated} />
       </div>
     </main>
   );

@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require('@sentry/nextjs');
+const withPWA = require('@ducanh2912/next-pwa').default;
 const fs = require('fs');
 const path = require('path');
 
@@ -77,4 +79,25 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+const pwaConfig = withPWA({
+  dest: 'public',
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  disable: process.env.NODE_ENV === 'development',
+  fallbacks: {
+    document: '/offline',
+  },
+  workboxOptions: {
+    disableDevLogs: true,
+  },
+})(nextConfig);
+
+module.exports = withSentryConfig(pwaConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+});

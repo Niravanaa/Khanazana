@@ -1,10 +1,21 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TopBar } from '@/components/top-bar';
 
-export default function HomePage() {
+export default function HomePage({
+  searchParams,
+}: {
+  searchParams: { error?: string; error_code?: string };
+}) {
+  if (searchParams.error_code === 'otp_expired') {
+    redirect('/login?error=link_expired');
+  }
+  if (searchParams.error === 'access_denied') {
+    redirect('/login?error=access_denied');
+  }
   return (
     <div className="min-h-screen bg-background">
       <TopBar />

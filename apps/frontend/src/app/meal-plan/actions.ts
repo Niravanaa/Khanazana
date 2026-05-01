@@ -35,5 +35,5 @@ export async function generateShoppingListAction(weekStart: string) {
   const date = new Date(weekStart + 'T00:00:00Z');
   await generateShoppingList(user.id, date);
   revalidatePath('/shopping-list');
-  redirect(`/shopping-list?week=${weekStart}`);
+  redirect(`/shopping-list?week=${weekStart}&generated=1`);
 }

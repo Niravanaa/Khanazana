@@ -1,13 +1,21 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getPublicRecipeById, getRecipeImageUrl } from '@/lib/recipes';
+import { getPublicRecipeById, getRecipeImageUrl, getCurrentUser } from '@/lib/recipes';
+import { getLikeCount, getUserHasLiked, getComments } from '@/lib/social';
+import { LikeButton } from '@/components/like-button';
+import { CommentSection } from '@/components/comment-section';
 
 export default async function PublicRecipePage({ params }: { params: { id: string } }) {
-  const recipe = await getPublicRecipeById(params.id);
-  if (!recipe) {
-    notFound();
-  }
+  const [recipe, user] = await Promise.all([getPublicRecipeById(params.id), getCurrentUser()]);
+
+  if (!recipe) notFound();
+
+  const [likeCount, userHasLiked, comments] = await Promise.all([
+    getLikeCount(recipe.id),
+    user ? getUserHasLiked(recipe.id, user.id) : Promise.resolve(false),
+    getComments(recipe.id),
+  ]);
 
   const imageUrl = getRecipeImageUrl(recipe.image_path);
 
@@ -38,7 +46,16 @@ export default async function PublicRecipePage({ params }: { params: { id: strin
           )}
 
           <div className="p-6 sm:p-8">
-            <h1 className="text-3xl font-bold text-foreground">{recipe.title}</h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-3xl font-bold text-foreground">{recipe.title}</h1>
+              <LikeButton
+                recipeId={recipe.id}
+                initialCount={likeCount}
+                initialLiked={userHasLiked}
+                isLoggedIn={!!user}
+              />
+            </div>
+
             {recipe.description && (
               <p className="mt-2 text-muted-foreground">{recipe.description}</p>
             )}
@@ -85,6 +102,10 @@ export default async function PublicRecipePage({ params }: { params: { id: strin
                   </li>
                 ))}
               </ol>
+            </div>
+
+            <div className="mt-10 border-t border-border pt-8">
+              <CommentSection recipeId={recipe.id} initialComments={comments} isLoggedIn={!!user} />
             </div>
           </div>
         </div>
