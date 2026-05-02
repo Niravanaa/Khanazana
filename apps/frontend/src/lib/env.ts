@@ -28,3 +28,7 @@ export function getServerEnv() {
 export function getAppUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 }
+
+export function getFdcApiKey(): string | undefined {
+  return process.env.USDA_FDC_API_KEY || undefined;
+}

@@ -7,6 +7,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAV = [
   { href: '/recipes', label: 'Recipes', icon: '🍳' },
+  { href: '/discover', label: 'Discover', icon: '🔍' },
   { href: '/meal-plan', label: 'Meal Plan', icon: '📅' },
   { href: '/shopping-list', label: 'Shopping List', icon: '🛒' },
 ] as const;
@@ -38,7 +39,7 @@ export function AppSidebar() {
   return (
     <>
       {/* Sidebar for large screens */}
-      <aside className="hidden lg:flex sticky top-0 h-screen w-56 shrink-0 flex-col border-r border-border bg-card">
+      <aside className="hidden lg:flex print:hidden sticky top-0 h-screen w-56 shrink-0 flex-col border-r border-border bg-card">
         {/* Brand */}
         <div className="flex h-14 items-center border-b border-border px-4">
           <Link href="/" className="flex w-full items-center justify-center">
@@ -80,17 +81,16 @@ export function AppSidebar() {
       </aside>
 
       {/* Top bar for small screens (fixed, removed from layout flow) */}
-      <div className="lg:hidden fixed inset-x-0 top-0 z-40 bg-card border-b border-border">
+      <div className="lg:hidden print:hidden fixed inset-x-0 top-0 z-40 bg-card border-b border-border">
         <div className="flex items-center justify-between px-3 py-2 h-14">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center">
             <Image
-              src="/logo-short.png"
+              src="/logo.png"
               alt="Khanazana"
-              width={28}
-              height={28}
+              width={110}
+              height={29}
               className="invert dark:invert-0"
             />
-            <span className="text-sm font-semibold">Khanazana</span>
           </Link>
 
           <div ref={containerRef} className="relative">

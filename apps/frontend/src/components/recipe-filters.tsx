@@ -5,11 +5,14 @@ import { useCallback, useRef, useTransition, useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
+const MEAL_TYPE_OPTIONS = ['breakfast', 'lunch', 'dinner', 'snacks'] as const;
+
 interface RecipeFiltersProps {
   initialQuery?: string;
   initialTag?: string;
   initialMaxCookTime?: string;
   initialIngredients?: string;
+  initialMealType?: string;
 }
 
 function parseTags(csv: string | undefined): string[] {
@@ -25,6 +28,7 @@ export function RecipeFilters({
   initialTag,
   initialMaxCookTime,
   initialIngredients,
+  initialMealType,
 }: RecipeFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -35,6 +39,7 @@ export function RecipeFilters({
   const [q, setQ] = useState(initialQuery ?? '');
   const [tag, setTag] = useState(initialTag ?? '');
   const [maxCookTime, setMaxCookTime] = useState(initialMaxCookTime ?? '');
+  const [mealType, setMealType] = useState(initialMealType ?? '');
   const [ingredientTags, setIngredientTags] = useState<string[]>(() =>
     parseTags(initialIngredients),
   );
@@ -44,6 +49,7 @@ export function RecipeFilters({
   const qRef = useRef(q);
   const tagRef = useRef(tag);
   const maxCookTimeRef = useRef(maxCookTime);
+  const mealTypeRef = useRef(mealType);
   const ingredientsRef = useRef(ingredientTags.join(','));
 
   useEffect(() => {
@@ -56,6 +62,9 @@ export function RecipeFilters({
     maxCookTimeRef.current = maxCookTime;
   }, [maxCookTime]);
   useEffect(() => {
+    mealTypeRef.current = mealType;
+  }, [mealType]);
+  useEffect(() => {
     ingredientsRef.current = ingredientTags.join(',');
   }, [ingredientTags]);
 
@@ -64,6 +73,7 @@ export function RecipeFilters({
       q: qRef.current,
       tag: tagRef.current,
       maxCookTime: maxCookTimeRef.current,
+      mealType: mealTypeRef.current || undefined,
       ingredients: ingredientsRef.current || undefined,
       ...overrides,
     };
@@ -71,6 +81,7 @@ export function RecipeFilters({
     if (merged.q) params.set('q', merged.q);
     if (merged.tag) params.set('tag', merged.tag);
     if (merged.maxCookTime) params.set('maxCookTime', merged.maxCookTime);
+    if (merged.mealType) params.set('mealType', merged.mealType);
     if (merged.ingredients) params.set('ingredients', merged.ingredients);
     return params;
   }, []);
@@ -99,9 +110,10 @@ export function RecipeFilters({
     setQ(initialQuery ?? '');
     setTag(initialTag ?? '');
     setMaxCookTime(initialMaxCookTime ?? '');
+    setMealType(initialMealType ?? '');
     setIngredientTags(parseTags(initialIngredients));
     setIngredientInput('');
-  }, [initialQuery, initialTag, initialMaxCookTime, initialIngredients]);
+  }, [initialQuery, initialTag, initialMaxCookTime, initialMealType, initialIngredients]);
 
   // listen for global clear event
   useEffect(() => {
@@ -109,6 +121,7 @@ export function RecipeFilters({
       setQ('');
       setTag('');
       setMaxCookTime('');
+      setMealType('');
       setIngredientTags([]);
       setIngredientInput('');
     }
@@ -140,11 +153,61 @@ export function RecipeFilters({
     }
   }
 
-  const hasFilters = !!(q || tag || maxCookTime || ingredientTags.length > 0);
+  const hasFilters = !!(q || tag || maxCookTime || mealType || ingredientTags.length > 0);
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="mb-6 space-y-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+    <div className="mb-6 space-y-2">
+      {/* Mobile toggle */}
+      <div className="flex items-center gap-2 sm:hidden">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground"
+          aria-expanded={open}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="12" x2="14" y2="12" />
+            <line x1="4" y1="18" x2="10" y2="18" />
+          </svg>
+          Filters
+          {hasFilters && (
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              {[q, tag, maxCookTime, mealType, ...ingredientTags].filter(Boolean).length}
+            </span>
+          )}
+        </button>
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={() => {
+              setQ('');
+              setTag('');
+              setMaxCookTime('');
+              setMealType('');
+              setIngredientTags([]);
+              setIngredientInput('');
+              startTransition(() => router.push(pathname));
+            }}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      <div className={`flex flex-wrap items-center gap-3 ${open ? 'flex' : 'hidden'} sm:flex`}>
         <Input
           type="search"
           placeholder="Search by title or description..."
@@ -179,6 +242,24 @@ export function RecipeFilters({
             updateSearch('maxCookTime', e.target.value || undefined);
           }}
         />
+
+        {/* Meal type dropdown */}
+        <select
+          aria-label="Filter by meal type"
+          value={mealType}
+          onChange={(e) => {
+            setMealType(e.target.value);
+            navigateNow({ mealType: e.target.value || undefined });
+          }}
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">All meal types</option>
+          {MEAL_TYPE_OPTIONS.map((opt) => (
+            <option key={opt} value={opt} className="capitalize">
+              {opt.charAt(0).toUpperCase() + opt.slice(1)}
+            </option>
+          ))}
+        </select>
 
         {/* Ingredient tag input */}
         <div
@@ -224,18 +305,20 @@ export function RecipeFilters({
               setQ('');
               setTag('');
               setMaxCookTime('');
+              setMealType('');
               setIngredientTags([]);
               setIngredientInput('');
               startTransition(() => router.push(pathname));
             }}
             disabled={isPending}
-            className="shrink-0"
+            className="hidden shrink-0 sm:inline-flex"
             aria-label="Clear all filters"
           >
             Clear
           </Button>
         )}
       </div>
+
       {isPending && <p className="text-xs text-muted-foreground">Filtering...</p>}
     </div>
   );

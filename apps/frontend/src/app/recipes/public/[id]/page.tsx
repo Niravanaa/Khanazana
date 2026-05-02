@@ -2,11 +2,23 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPublicRecipeById, getRecipeImageUrl, getCurrentUser } from '@/lib/recipes';
+// Simple UUID validation to avoid passing non-UUIDs (eg. "new") into Prisma queries
+function isValidUuid(id: string) {
+  return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(
+    id,
+  );
+}
 import { getLikeCount, getUserHasLiked, getComments } from '@/lib/social';
 import { LikeButton } from '@/components/like-button';
 import { CommentSection } from '@/components/comment-section';
+import { RecipeNutrition } from '@/components/recipe-nutrition';
+import { ScalableIngredients } from '@/components/scalable-ingredients';
 
 export default async function PublicRecipePage({ params }: { params: { id: string } }) {
+  if (!isValidUuid(params.id)) {
+    notFound();
+  }
+
   const [recipe, user] = await Promise.all([getPublicRecipeById(params.id), getCurrentUser()]);
 
   if (!recipe) notFound();
@@ -60,11 +72,16 @@ export default async function PublicRecipePage({ params }: { params: { id: strin
               <p className="mt-2 text-muted-foreground">{recipe.description}</p>
             )}
 
-            {(recipe.cook_time || recipe.tags.length > 0) && (
+            {(recipe.cook_time || recipe.servings || recipe.tags.length > 0) && (
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 {recipe.cook_time && (
                   <span className="rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
                     ⏱ {recipe.cook_time} min
+                  </span>
+                )}
+                {recipe.servings && (
+                  <span className="rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
+                    🍽 {recipe.servings} servings
                   </span>
                 )}
                 {recipe.tags.map((tag) => (
@@ -78,16 +95,11 @@ export default async function PublicRecipePage({ params }: { params: { id: strin
               </div>
             )}
 
-            <div className="mt-8 space-y-3">
-              <h2 className="text-xl font-semibold text-foreground">Ingredients</h2>
-              <ul className="space-y-2">
-                {recipe.ingredients.map((ingredient) => (
-                  <li key={ingredient} className="flex items-start">
-                    <span className="mr-3 shrink-0 text-muted-foreground">•</span>
-                    <span className="text-foreground">{ingredient}</span>
-                  </li>
-                ))}
-              </ul>
+            <div className="mt-8">
+              <ScalableIngredients
+                ingredients={recipe.ingredients}
+                defaultServings={recipe.servings ?? 1}
+              />
             </div>
 
             <div className="mt-8 space-y-3">
@@ -104,8 +116,20 @@ export default async function PublicRecipePage({ params }: { params: { id: strin
               </ol>
             </div>
 
+            {recipe.ingredients_nutrition && recipe.ingredients_nutrition.length > 0 && (
+              <div className="mt-8">
+                <RecipeNutrition nutrition={recipe.ingredients_nutrition} />
+              </div>
+            )}
+
             <div className="mt-10 border-t border-border pt-8">
-              <CommentSection recipeId={recipe.id} initialComments={comments} isLoggedIn={!!user} />
+              <CommentSection
+                recipeId={recipe.id}
+                initialComments={comments}
+                isLoggedIn={!!user}
+                currentUserId={user?.id ?? null}
+                recipeOwnerId={recipe.user_id}
+              />
             </div>
           </div>
         </div>

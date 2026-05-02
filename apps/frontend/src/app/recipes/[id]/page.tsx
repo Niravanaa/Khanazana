@@ -5,6 +5,8 @@ import { deleteRecipeAction } from '@/app/recipes/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CopyLinkButton } from '@/components/copy-link-button';
+import { RecipeNutrition } from '@/components/recipe-nutrition';
+import { ScalableIngredients } from '@/components/scalable-ingredients';
 import { getCurrentUser, getRecipeByIdForUser, getRecipeImageUrl } from '@/lib/recipes';
 
 export const dynamic = 'force-dynamic';
@@ -46,11 +48,16 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
                 </span>
               )}
             </div>
-            {(recipe.cook_time || recipe.tags.length > 0) && (
+            {(recipe.cook_time || recipe.servings || recipe.tags.length > 0) && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {recipe.cook_time && (
                   <span className="rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
                     ⏱ {recipe.cook_time} min
+                  </span>
+                )}
+                {recipe.servings && (
+                  <span className="rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
+                    🍽 {recipe.servings} servings
                   </span>
                 )}
                 {recipe.tags.map((tag) => (
@@ -78,17 +85,10 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
               </div>
             ) : null}
 
-            <div className="space-y-3">
-              <h2 className="text-xl font-semibold text-foreground">Ingredients</h2>
-              <ul className="space-y-2">
-                {(recipe.ingredients as string[]).map((ingredient) => (
-                  <li key={ingredient} className="flex items-start">
-                    <span className="mr-3 flex-shrink-0 text-muted-foreground">•</span>
-                    <span className="text-foreground">{ingredient}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ScalableIngredients
+              ingredients={recipe.ingredients as string[]}
+              defaultServings={recipe.servings ?? 1}
+            />
 
             <div className="space-y-3">
               <h2 className="text-xl font-semibold text-foreground">Instructions</h2>
@@ -103,12 +103,19 @@ export default async function RecipeDetailPage({ params }: { params: { id: strin
                 ))}
               </ol>
             </div>
+
+            {recipe.ingredients_nutrition && recipe.ingredients_nutrition.length > 0 && (
+              <RecipeNutrition nutrition={recipe.ingredients_nutrition} />
+            )}
           </CardContent>
         </Card>
 
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href={`/recipes/${recipe.id}/edit`}>
             <Button>Edit Recipe</Button>
+          </Link>
+          <Link href={`/recipes/${recipe.id}/print`} target="_blank">
+            <Button variant="outline">Print</Button>
           </Link>
           {recipe.is_public && <CopyLinkButton path={`/recipes/public/${recipe.id}`} />}
           <form action={deleteAction}>

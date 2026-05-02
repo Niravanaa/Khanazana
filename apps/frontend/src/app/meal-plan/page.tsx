@@ -1,8 +1,15 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/recipes';
-import { getOrCreateMealPlan, getWeekStart, weekStartParam } from '@/lib/meal-plan';
+import {
+  getOrCreateMealPlan,
+  getWeeklyNutrition,
+  getWeekStart,
+  weekStartParam,
+  type NutritionFilterType,
+} from '@/lib/meal-plan';
 import { MealPlanGrid } from '@/components/meal-plan-grid';
+import { NutritionFilter } from '@/components/nutrition-filter';
 import { generateShoppingListAction } from '@/app/meal-plan/actions';
 
 export const dynamic = 'force-dynamic';
@@ -35,7 +42,7 @@ function formatWeekRange(weekStart: Date): string {
 }
 
 interface MealPlanPageProps {
-  searchParams: { week?: string };
+  searchParams: { week?: string; nutritionFilter?: string };
 }
 
 export default async function MealPlanPage({ searchParams }: MealPlanPageProps) {
@@ -43,7 +50,11 @@ export default async function MealPlanPage({ searchParams }: MealPlanPageProps) 
   if (!user) redirect('/login');
 
   const weekStart = parseWeekStart(searchParams.week);
-  const plan = await getOrCreateMealPlan(user.id, weekStart);
+  const nutritionFilter = (searchParams.nutritionFilter || 'all') as NutritionFilterType;
+  const [plan, nutrition] = await Promise.all([
+    getOrCreateMealPlan(user.id, weekStart),
+    getWeeklyNutrition(user.id, weekStart, nutritionFilter),
+  ]);
 
   const prevWeek = new Date(weekStart);
   prevWeek.setUTCDate(prevWeek.getUTCDate() - 7);
@@ -98,6 +109,40 @@ export default async function MealPlanPage({ searchParams }: MealPlanPageProps) 
         </div>
 
         <MealPlanGrid plan={plan} userId={user.id} days={DAYS} slots={SLOTS as any} />
+
+        {nutrition && (
+          <div className="mt-8 rounded-xl border border-border bg-card p-5">
+            <div className="mb-4 flex items-baseline justify-between">
+              <h2 className="text-sm font-semibold text-foreground">Weekly nutrition estimate</h2>
+              <span className="text-xs text-muted-foreground">excludes unmatched ingredients</span>
+            </div>
+
+            <div className="mb-5">
+              <NutritionFilter week={weekStartParam(weekStart)} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-lg bg-background px-4 py-3 text-center">
+                <p className="text-2xl font-bold text-foreground">
+                  {nutrition.calories.toLocaleString()}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">kcal</p>
+              </div>
+              <div className="rounded-lg bg-background px-4 py-3 text-center">
+                <p className="text-2xl font-bold text-foreground">{nutrition.protein_g}g</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">protein</p>
+              </div>
+              <div className="rounded-lg bg-background px-4 py-3 text-center">
+                <p className="text-2xl font-bold text-foreground">{nutrition.carbs_g}g</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">carbs</p>
+              </div>
+              <div className="rounded-lg bg-background px-4 py-3 text-center">
+                <p className="text-2xl font-bold text-foreground">{nutrition.fat_g}g</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">fat</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
