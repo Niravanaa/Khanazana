@@ -20,6 +20,8 @@ export function buildRecipeInput(formData: FormData): RecipeInput {
   const tags = parseCommaSeparated(formData.get('tags'));
   const cookTimeRaw = String(formData.get('cook_time') ?? '').trim();
   const cook_time = cookTimeRaw ? parseInt(cookTimeRaw, 10) || null : null;
+  const servingsRaw = String(formData.get('servings') ?? '').trim();
+  const servings = servingsRaw ? parseInt(servingsRaw, 10) || null : null;
 
   // Structured ingredients
   const qtys = formData.getAll('ingredient_qty') as string[];
@@ -36,10 +38,21 @@ export function buildRecipeInput(formData: FormData): RecipeInput {
     .filter(Boolean);
 
   const is_public = formData.get('is_public') === 'true';
+  const meal_types = (formData.getAll('meal_types') as string[]).filter(Boolean);
 
   if (!title) throw new Error('Recipe title is required.');
   if (ingredients.length === 0) throw new Error('At least one ingredient is required.');
   if (instructions.length === 0) throw new Error('At least one instruction step is required.');
 
-  return { title, description, ingredients, instructions, tags, cook_time, is_public };
+  return {
+    title,
+    description,
+    ingredients,
+    instructions,
+    tags,
+    cook_time,
+    is_public,
+    servings,
+    meal_types,
+  };
 }

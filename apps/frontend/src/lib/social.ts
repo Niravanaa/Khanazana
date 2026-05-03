@@ -57,3 +57,16 @@ export async function addComment(
     created_at: comment.created_at,
   };
 }
+
+export async function deleteComment(
+  commentId: string,
+  requestingUserId: string,
+  recipeOwnerId: string,
+): Promise<void> {
+  const comment = await prisma.recipeComment.findUnique({ where: { id: commentId } });
+  if (!comment) throw new Error('Comment not found');
+  if (comment.user_id !== requestingUserId && requestingUserId !== recipeOwnerId) {
+    throw new Error('Not authorised');
+  }
+  await prisma.recipeComment.delete({ where: { id: commentId } });
+}

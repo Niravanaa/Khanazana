@@ -28,6 +28,8 @@
     "pg": "^8.13.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-easy-crop": "^5.5.7",
+    "sharp": "^0.34.5",
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {

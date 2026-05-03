@@ -46,6 +46,8 @@ describe('buildRecipeInput', () => {
       tags: [],
       cook_time: null,
       is_public: false,
+      servings: null,
+      meal_types: [],
     });
   });
 

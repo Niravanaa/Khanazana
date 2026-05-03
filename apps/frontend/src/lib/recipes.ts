@@ -1,7 +1,10 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/prisma';
-import type { RecipeInput, RecipeRecord, RecipeSearchParams } from '@/lib/types';
+import type { RecipeInput, RecipeRecord, RecipeSearchParams, FdcNutrition } from '@/lib/types';
+import type { Prisma } from '@prisma/client';
 import { cookies } from 'next/headers';
+import { enrichIngredients } from '@/lib/fdc';
+import { getFdcApiKey } from '@/lib/env';
 
 type RecipeRow = {
   id: string;
@@ -14,6 +17,9 @@ type RecipeRow = {
   tags: string[];
   cook_time: number | null;
   is_public: boolean;
+  servings: number | null;
+  meal_types: string[];
+  ingredients_nutrition: unknown;
   created_at: Date;
   updated_at: Date;
 };
@@ -26,6 +32,11 @@ function toStringArray(value: unknown) {
   return value.filter((item): item is string => typeof item === 'string');
 }
 
+function toNutritionArray(value: unknown): FdcNutrition[] | null {
+  if (!Array.isArray(value)) return null;
+  return value as FdcNutrition[];
+}
+
 function toRecipeRecord(recipe: RecipeRow): RecipeRecord {
   return {
     ...recipe,
@@ -34,6 +45,9 @@ function toRecipeRecord(recipe: RecipeRow): RecipeRecord {
     tags: recipe.tags ?? [],
     cook_time: recipe.cook_time ?? null,
     is_public: recipe.is_public ?? false,
+    servings: recipe.servings ?? null,
+    meal_types: recipe.meal_types ?? [],
+    ingredients_nutrition: toNutritionArray(recipe.ingredients_nutrition),
   };
 }
 
@@ -82,6 +96,10 @@ export async function listRecipesForUser(
     where.tags = { has: search.tag.toLowerCase() };
   }
 
+  if (search?.mealType) {
+    where.meal_types = { has: search.mealType };
+  }
+
   if (search?.maxCookTime) {
     where.cook_time = { lte: search.maxCookTime, not: null };
   }
@@ -111,6 +129,32 @@ export async function listRecipesForUser(
   }
 
   return mapped;
+}
+
+export async function listPublicRecipes(search?: {
+  query?: string;
+  tag?: string;
+}): Promise<RecipeRecord[]> {
+  const where: Record<string, unknown> = { is_public: true };
+
+  if (search?.query) {
+    const q = search.query;
+    where.OR = [
+      { title: { contains: q, mode: 'insensitive' } },
+      { description: { contains: q, mode: 'insensitive' } },
+    ];
+  }
+
+  if (search?.tag) {
+    where.tags = { has: search.tag.toLowerCase() };
+  }
+
+  const recipes = await prisma.recipe.findMany({
+    where,
+    orderBy: { created_at: 'desc' },
+  });
+
+  return recipes.map(toRecipeRecord);
 }
 
 export async function getRecipeByIdForUser(
@@ -147,8 +191,12 @@ export async function createRecipeForUser(
       tags: input.tags ?? [],
       cook_time: input.cook_time ?? null,
       is_public: input.is_public ?? false,
+      servings: input.servings ?? null,
+      meal_types: input.meal_types ?? [],
     },
   });
+
+  await runEnrichment(recipe.id, input.ingredients);
 
   return toRecipeRecord(recipe);
 }
@@ -172,10 +220,50 @@ export async function updateRecipeForUser(
       ...(input.tags !== undefined && { tags: input.tags }),
       ...(input.cook_time !== undefined && { cook_time: input.cook_time }),
       ...(input.is_public !== undefined && { is_public: input.is_public }),
+      ...(input.servings !== undefined && { servings: input.servings }),
+      ...(input.meal_types !== undefined && { meal_types: input.meal_types }),
     },
   });
 
+  if (input.ingredients !== undefined) {
+    await runEnrichment(recipeId, input.ingredients);
+  }
+
   return toRecipeRecord(recipe);
+}
+
+async function runEnrichment(recipeId: string, ingredients: string[]): Promise<void> {
+  if (process.env.E2E_TEST_MODE === 'true') {
+    const nutrition = ingredients.map((text, index) => ({
+      text,
+      fdcId: 900000 + index,
+      calories: 100,
+      protein_g: 3,
+      carbs_g: 12,
+      fat_g: 2,
+      category: 'Test data',
+    }));
+
+    await prisma.recipe.update({
+      where: { id: recipeId },
+      data: { ingredients_nutrition: nutrition as unknown as Prisma.InputJsonValue },
+    });
+
+    return;
+  }
+
+  const apiKey = getFdcApiKey();
+  if (!apiKey || ingredients.length === 0) return;
+
+  try {
+    const nutrition = await enrichIngredients(ingredients, apiKey);
+    await prisma.recipe.update({
+      where: { id: recipeId },
+      data: { ingredients_nutrition: nutrition as unknown as Prisma.InputJsonValue },
+    });
+  } catch {
+    // Enrichment failure never blocks a save
+  }
 }
 
 export async function deleteRecipeForUser(recipeId: string, userId: string): Promise<void> {

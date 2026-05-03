@@ -48,26 +48,11 @@ setup('authenticate', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password').fill(password);
-    await page.locator('form').getByRole('button', { name: 'Sign In' }).click();
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await Promise.all([
+      page.waitForURL('**/recipes', { timeout: 15_000 }),
+      page.locator('form').getByRole('button', { name: 'Sign In' }).click(),
+    ]);
     return page.url().includes('/recipes');
-  };
-
-  const signInViaE2ERoute = async () => {
-    await page.goto('/login');
-    const result = await page.evaluate(
-      async ({ email, password }) => {
-        const response = await fetch('/api/e2e-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        const body = await response.json().catch(() => null);
-        return { ok: response.ok, status: response.status, body };
-      },
-      { email, password },
-    );
-    return result;
   };
 
   const signedIn = await signIn();
@@ -78,10 +63,12 @@ setup('authenticate', async ({ page }) => {
     await page.getByRole('button', { name: 'Sign Up' }).click();
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password').fill(password);
-    await page.locator('form').getByRole('button', { name: 'Create Account' }).click();
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await Promise.all([
+      page.waitForLoadState('networkidle', { timeout: 15_000 }),
+      page.locator('form').getByRole('button', { name: 'Create Account' }).click(),
+    ]);
 
-    // If we are still on /login (e.g. existing account), retry sign in with the same creds.
+    // If we are still on /login (e.g. existing account or confirmation flow), retry sign in.
     if (!page.url().includes('/recipes')) {
       const secondTry = await signIn();
       if (!secondTry) {
@@ -92,13 +79,6 @@ setup('authenticate', async ({ page }) => {
         throw new Error(`Login did not reach /recipes (got ${page.url()}): ${msg}`);
       }
     }
-  }
-
-  const routeLogin = await signInViaE2ERoute();
-  if (!routeLogin.ok) {
-    throw new Error(
-      `E2E cookie login failed (${routeLogin.status}): ${JSON.stringify(routeLogin.body)}`,
-    );
   }
 
   await page.goto('/recipes');

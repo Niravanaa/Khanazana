@@ -49,8 +49,8 @@ describe('generateShoppingList', () => {
   it('clears existing items and creates new ones from meal plan', async () => {
     mockFindUnique.mockResolvedValue({
       entries: [
-        { recipe: { ingredients: ['chicken', 'cream'] } },
-        { recipe: { ingredients: ['cream', 'butter'] } }, // 'cream' deduplicated
+        { recipe: { ingredients: ['chicken', 'cream'], ingredients_nutrition: null } },
+        { recipe: { ingredients: ['cream', 'butter'], ingredients_nutrition: null } }, // 'cream' deduplicated
       ],
     });
     mockTransaction.mockResolvedValue([]);
@@ -84,7 +84,7 @@ describe('generateShoppingList', () => {
 
   it('skips non-string ingredient entries', async () => {
     mockFindUnique.mockResolvedValue({
-      entries: [{ recipe: { ingredients: [42, null, 'valid'] } }],
+      entries: [{ recipe: { ingredients: [42, null, 'valid'], ingredients_nutrition: null } }],
     });
     mockTransaction.mockResolvedValue([]);
 
@@ -93,16 +93,59 @@ describe('generateShoppingList', () => {
     const ops = mockTransaction.mock.calls[0][0] as unknown[];
     expect(ops).toHaveLength(2); // deleteMany + createMany (only 'valid')
   });
+
+  it('assigns display category from enrichment data', async () => {
+    mockFindUnique.mockResolvedValue({
+      entries: [
+        {
+          recipe: {
+            ingredients: ['chicken breast', 'spinach'],
+            ingredients_nutrition: [
+              { text: 'chicken breast', category: 'Poultry Products' },
+              { text: 'spinach', category: 'Vegetables and Vegetable Products' },
+            ],
+          },
+        },
+      ],
+    });
+    mockTransaction.mockResolvedValue([]);
+    mockCreateMany.mockResolvedValue({ count: 2 });
+
+    await generateShoppingList(USER_ID, WEEK_START);
+
+    // Verify createMany was called with mapped categories
+    const ops = mockTransaction.mock.calls[0][0] as Array<{ skipDuplicates?: boolean }>;
+    expect(ops).toHaveLength(2);
+  });
+
+  it('stores null category when ingredient has no enrichment match', async () => {
+    mockFindUnique.mockResolvedValue({
+      entries: [
+        {
+          recipe: {
+            ingredients: ['mystery spice'],
+            ingredients_nutrition: [{ text: 'different ingredient', category: 'Spices and Herbs' }],
+          },
+        },
+      ],
+    });
+    mockTransaction.mockResolvedValue([]);
+
+    await generateShoppingList(USER_ID, WEEK_START);
+
+    const ops = mockTransaction.mock.calls[0][0] as unknown[];
+    expect(ops).toHaveLength(2);
+  });
 });
 
 // ---------------------------------------------------------------------------
 // getShoppingList
 // ---------------------------------------------------------------------------
 describe('getShoppingList', () => {
-  it('returns mapped items', async () => {
+  it('returns mapped items with category', async () => {
     mockFindMany.mockResolvedValue([
-      { id: ITEM_ID, ingredient: 'chicken', bought: false },
-      { id: 'item-2', ingredient: 'cream', bought: true },
+      { id: ITEM_ID, ingredient: 'chicken', bought: false, category: 'Meat & Fish' },
+      { id: 'item-2', ingredient: 'cream', bought: true, category: null },
     ]);
 
     const result = await getShoppingList(USER_ID, WEEK_START);
@@ -112,8 +155,8 @@ describe('getShoppingList', () => {
       orderBy: [{ bought: 'asc' }, { ingredient: 'asc' }],
     });
     expect(result).toEqual([
-      { id: ITEM_ID, ingredient: 'chicken', bought: false },
-      { id: 'item-2', ingredient: 'cream', bought: true },
+      { id: ITEM_ID, ingredient: 'chicken', bought: false, category: 'Meat & Fish' },
+      { id: 'item-2', ingredient: 'cream', bought: true, category: null },
     ]);
   });
 

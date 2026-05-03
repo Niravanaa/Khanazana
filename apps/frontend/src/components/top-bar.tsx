@@ -14,10 +14,10 @@ export function TopBar() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center">
           <Image
-            src="/logo-short.png"
+            src="/logo.png"
             alt="Khanazana"
-            width={28}
-            height={28}
+            width={110}
+            height={29}
             className="invert dark:invert-0 sm:hidden"
           />
           <Image

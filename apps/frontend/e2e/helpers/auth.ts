@@ -5,24 +5,11 @@ const E2E_PASSWORD = process.env.E2E_PASSWORD ?? 'KhanazanaE2E123!';
 
 export async function ensureAuthenticated(page: Page) {
   await page.goto('/login');
+  await page.getByLabel('Email').fill(E2E_EMAIL);
+  await page.getByLabel('Password').fill(E2E_PASSWORD);
 
-  const loginResult = await page.evaluate(
-    async ({ email, password }) => {
-      const response = await fetch('/api/e2e-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const payload = await response.json().catch(() => null);
-      return { ok: response.ok, status: response.status, payload };
-    },
-    { email: E2E_EMAIL, password: E2E_PASSWORD },
-  );
-
-  if (!loginResult.ok) {
-    throw new Error(
-      `ensureAuthenticated failed (${loginResult.status}): ${JSON.stringify(loginResult.payload)}`,
-    );
-  }
+  await Promise.all([
+    page.waitForURL('**/recipes', { timeout: 15_000 }),
+    page.locator('form').getByRole('button', { name: 'Sign In' }).click(),
+  ]);
 }

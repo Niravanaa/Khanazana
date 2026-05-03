@@ -42,6 +42,7 @@ export default defineConfig({
       ...process.env,
       E2E_TEST_MODE: 'true',
       E2E_USER_ID: process.env.E2E_USER_ID ?? '11111111-1111-4111-8111-111111111111',
+      USDA_FDC_API_KEY: process.env.USDA_FDC_API_KEY ?? 'test-key-e2e',
     },
   },
 });

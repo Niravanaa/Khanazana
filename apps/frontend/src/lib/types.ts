@@ -1,3 +1,7 @@
+import type { FdcNutrition } from '@/lib/fdc';
+
+export type { FdcNutrition };
+
 export interface RecipeInput {
   title: string;
   description: string;
@@ -7,6 +11,8 @@ export interface RecipeInput {
   tags?: string[];
   cook_time?: number | null;
   is_public?: boolean;
+  servings?: number | null;
+  meal_types?: string[];
 }
 
 export interface RecipeRecord {
@@ -20,6 +26,9 @@ export interface RecipeRecord {
   tags: string[];
   cook_time: number | null;
   is_public: boolean;
+  servings: number | null;
+  meal_types: string[];
+  ingredients_nutrition: FdcNutrition[] | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -29,4 +38,5 @@ export interface RecipeSearchParams {
   tag?: string;
   maxCookTime?: number;
   ingredients?: string[];
+  mealType?: string;
 }

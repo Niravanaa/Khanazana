@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/recipes';
-import { toggleLike, addComment } from '@/lib/social';
+import { toggleLike, addComment, deleteComment } from '@/lib/social';
 
 async function requireUser(recipeId: string) {
   const user = await getCurrentUser();
@@ -22,5 +22,15 @@ export async function addCommentAction(recipeId: string, formData: FormData) {
   const body = (formData.get('body') as string | null)?.trim() ?? '';
   if (!body || body.length > 500) return;
   await addComment(recipeId, user.id, body);
+  revalidatePath(`/recipes/public/${recipeId}`);
+}
+
+export async function deleteCommentAction(
+  recipeId: string,
+  commentId: string,
+  recipeOwnerId: string,
+) {
+  const user = await requireUser(recipeId);
+  await deleteComment(commentId, user.id, recipeOwnerId);
   revalidatePath(`/recipes/public/${recipeId}`);
 }

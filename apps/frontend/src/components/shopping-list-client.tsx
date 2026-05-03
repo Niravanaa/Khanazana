@@ -210,8 +210,28 @@ export function ShoppingListClient({ items, week, exportUrl, generated }: Shoppi
     });
   }
 
-  const pending = optimisticItems.filter((i) => !i.bought);
-  const bought = optimisticItems.filter((i) => i.bought);
+  const categoryGroups = useMemo(() => {
+    const ORDER = ['Produce', 'Meat & Fish', 'Dairy & Eggs', 'Bakery', 'Pantry', 'Drinks'];
+    const map = new Map<string, typeof optimisticItems>();
+
+    for (const item of optimisticItems) {
+      const cat = item.category ?? 'Other';
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(item);
+    }
+
+    const known = ORDER.filter((c) => map.has(c));
+    const unknown = [...map.keys()].filter((c) => !ORDER.includes(c) && c !== 'Other');
+    const hasOther = map.has('Other');
+
+    return [...known, ...unknown, ...(hasOther ? ['Other'] : [])].map((cat) => ({
+      category: cat,
+      items: map.get(cat)!,
+    }));
+  }, [optimisticItems]);
+
+  const boughtCount = optimisticItems.filter((i) => i.bought).length;
+  const hasCategories = optimisticItems.some((i) => i.category !== null);
 
   return (
     <>
@@ -229,9 +249,48 @@ export function ShoppingListClient({ items, week, exportUrl, generated }: Shoppi
           <p className="py-12 text-center text-muted-foreground">
             No items yet. Generate a shopping list from your meal plan.
           </p>
+        ) : hasCategories ? (
+          <div className="space-y-6">
+            {categoryGroups.map(({ category, items: groupItems }) => {
+              const pending = groupItems.filter((i) => !i.bought);
+              const bought = groupItems.filter((i) => i.bought);
+              return (
+                <div key={category}>
+                  <h3 className="sticky top-0 z-10 bg-background py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    {category}
+                  </h3>
+                  <div className="space-y-1">
+                    {[...pending, ...bought].map((item) => (
+                      <label
+                        key={item.id}
+                        className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 hover:bg-accent/50"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={item.bought}
+                          onChange={() => handleToggle(item.id)}
+                          className="h-5 w-5 accent-primary"
+                        />
+                        <span
+                          className={
+                            item.bought ? 'text-muted-foreground line-through' : 'text-foreground'
+                          }
+                        >
+                          {item.ingredient}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div className="space-y-1">
-            {[...pending, ...bought].map((item) => (
+            {[
+              ...optimisticItems.filter((i) => !i.bought),
+              ...optimisticItems.filter((i) => i.bought),
+            ].map((item) => (
               <label
                 key={item.id}
                 className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 hover:bg-accent/50"
@@ -252,9 +311,9 @@ export function ShoppingListClient({ items, week, exportUrl, generated }: Shoppi
           </div>
         )}
 
-        {bought.length > 0 && (
+        {boughtCount > 0 && (
           <p className="mt-4 text-right text-xs text-muted-foreground">
-            {bought.length} of {items.length} bought
+            {boughtCount} of {optimisticItems.length} bought
           </p>
         )}
       </div>

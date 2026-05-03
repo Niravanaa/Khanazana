@@ -3,6 +3,7 @@ import type { DayOfWeek, MealSlot } from '@prisma/client';
 
 const mockUpsertPlan = vi.hoisted(() => vi.fn());
 const mockFindFirstPlan = vi.hoisted(() => vi.fn());
+const mockFindUniquePlan = vi.hoisted(() => vi.fn());
 const mockUpsertEntry = vi.hoisted(() => vi.fn());
 const mockFindFirstEntry = vi.hoisted(() => vi.fn());
 const mockDeleteEntry = vi.hoisted(() => vi.fn());
@@ -12,6 +13,7 @@ vi.mock('@/lib/prisma', () => ({
     mealPlan: {
       upsert: mockUpsertPlan,
       findFirst: mockFindFirstPlan,
+      findUnique: mockFindUniquePlan,
     },
     mealPlanEntry: {
       upsert: mockUpsertEntry,
@@ -32,6 +34,7 @@ import {
   getOrCreateMealPlan,
   addMealPlanEntry,
   removeMealPlanEntry,
+  getWeeklyNutrition,
 } from './meal-plan';
 
 const USER_ID = 'user-abc';
@@ -158,6 +161,81 @@ describe('addMealPlanEntry', () => {
         create: { plan_id: PLAN_ID, recipe_id: RECIPE_ID, day: 'TUESDAY', meal_slot: 'DINNER' },
       }),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getWeeklyNutrition
+// ---------------------------------------------------------------------------
+describe('getWeeklyNutrition', () => {
+  const weekStart = new Date('2026-04-27T00:00:00Z');
+
+  it('returns null when no meal plan exists', async () => {
+    mockFindUniquePlan.mockResolvedValue(null);
+    expect(await getWeeklyNutrition(USER_ID, weekStart)).toBeNull();
+  });
+
+  it('returns null when no entries have enrichment data', async () => {
+    mockFindUniquePlan.mockResolvedValue({
+      entries: [
+        { recipe: { ingredients_nutrition: null } },
+        { recipe: { ingredients_nutrition: [] } },
+      ],
+    });
+    expect(await getWeeklyNutrition(USER_ID, weekStart)).toBeNull();
+  });
+
+  it('sums nutrition across all recipe entries', async () => {
+    mockFindUniquePlan.mockResolvedValue({
+      entries: [
+        {
+          recipe: {
+            ingredients_nutrition: [
+              { calories: 200, protein_g: 20, carbs_g: 10, fat_g: 5 },
+              { calories: 100, protein_g: 5, carbs_g: 15, fat_g: 2 },
+            ],
+          },
+        },
+        {
+          recipe: {
+            ingredients_nutrition: [{ calories: 300, protein_g: 25, carbs_g: 20, fat_g: 10 }],
+          },
+        },
+      ],
+    });
+
+    const result = await getWeeklyNutrition(USER_ID, weekStart);
+    expect(result).toEqual({ calories: 600, protein_g: 50, carbs_g: 45, fat_g: 17 });
+  });
+
+  it('skips null nutrient fields without counting them as zero', async () => {
+    mockFindUniquePlan.mockResolvedValue({
+      entries: [
+        {
+          recipe: {
+            ingredients_nutrition: [{ calories: 150, protein_g: null, carbs_g: 10, fat_g: null }],
+          },
+        },
+      ],
+    });
+
+    const result = await getWeeklyNutrition(USER_ID, weekStart);
+    expect(result).toEqual({ calories: 150, protein_g: 0, carbs_g: 10, fat_g: 0 });
+  });
+
+  it('rounds fractional totals to nearest integer', async () => {
+    mockFindUniquePlan.mockResolvedValue({
+      entries: [
+        {
+          recipe: {
+            ingredients_nutrition: [{ calories: 100.6, protein_g: 10.4, carbs_g: 5.5, fat_g: 2.9 }],
+          },
+        },
+      ],
+    });
+
+    const result = await getWeeklyNutrition(USER_ID, weekStart);
+    expect(result).toEqual({ calories: 101, protein_g: 10, carbs_g: 6, fat_g: 3 });
   });
 });
 

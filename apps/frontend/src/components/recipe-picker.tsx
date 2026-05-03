@@ -11,6 +11,7 @@ interface Recipe {
   image_url: string | null;
   tags: string[];
   cook_time: number | null;
+  meal_types: string[];
 }
 
 interface RecipePickerProps {
@@ -43,6 +44,7 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>('list');
   const [slot, setSlot] = useState<MealSlot | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const [failedImages, setFailedImages] = useState<Record<string, true>>({});
   const dialogRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -97,7 +99,15 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
     return () => dialog.removeEventListener('keydown', onTab);
   }, []);
 
-  const filtered = recipes.filter((r) => r.title.toLowerCase().includes(query.toLowerCase()));
+  const byMealType =
+    slot && !showAll
+      ? recipes.filter((r) => r.meal_types.length === 0 || r.meal_types.includes(slot))
+      : recipes;
+  const filtered = byMealType.filter((r) => r.title.toLowerCase().includes(query.toLowerCase()));
+  const hiddenCount =
+    slot && !showAll
+      ? recipes.filter((r) => r.meal_types.length > 0 && !r.meal_types.includes(slot)).length
+      : 0;
 
   function hasImage(recipe: Recipe): boolean {
     return Boolean(recipe.image_url) && !failedImages[recipe.id];
@@ -165,7 +175,10 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
           {SLOTS.map((s) => (
             <button
               key={s.value}
-              onClick={() => setSlot(s.value)}
+              onClick={() => {
+                setSlot(s.value);
+                setShowAll(false);
+              }}
               aria-pressed={slot === s.value}
               className={`flex-1 rounded-md py-2.5 text-xs font-medium transition-colors ${
                 slot === s.value
@@ -199,7 +212,45 @@ export function RecipePicker({ day, onSelect, onClose }: RecipePickerProps) {
 
           {slot && loading && <p className="text-sm text-muted-foreground">Loading…</p>}
           {slot && !loading && filtered.length === 0 && (
-            <p className="text-sm text-muted-foreground">No recipes found.</p>
+            <p className="text-sm text-muted-foreground">
+              No recipes found.
+              {hiddenCount > 0 && !showAll && (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    onClick={() => setShowAll(true)}
+                    className="underline hover:text-foreground"
+                  >
+                    Show all {recipes.length} recipes
+                  </button>
+                </>
+              )}
+            </p>
+          )}
+          {slot && !loading && filtered.length > 0 && hiddenCount > 0 && !showAll && (
+            <p className="mb-2 text-xs text-muted-foreground">
+              Showing {filtered.length} {slot} recipes.{' '}
+              <button
+                type="button"
+                onClick={() => setShowAll(true)}
+                className="underline hover:text-foreground"
+              >
+                Show all {recipes.length}
+              </button>
+            </p>
+          )}
+          {slot && !loading && showAll && (
+            <p className="mb-2 text-xs text-muted-foreground">
+              Showing all recipes.{' '}
+              <button
+                type="button"
+                onClick={() => setShowAll(false)}
+                className="underline hover:text-foreground"
+              >
+                Filter by {slot}
+              </button>
+            </p>
           )}
 
           {slot && view === 'list' && (

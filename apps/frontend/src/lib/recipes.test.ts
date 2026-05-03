@@ -8,6 +8,8 @@ const mockFindFirst = vi.hoisted(() => vi.fn());
 const mockCreate = vi.hoisted(() => vi.fn());
 const mockUpdate = vi.hoisted(() => vi.fn());
 const mockDeleteMany = vi.hoisted(() => vi.fn());
+const mockEnrichIngredients = vi.hoisted(() => vi.fn());
+const mockGetFdcApiKey = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/supabase/server', () => ({
   createSupabaseServerClient: () => ({
@@ -28,12 +30,16 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
+vi.mock('@/lib/fdc', () => ({ enrichIngredients: mockEnrichIngredients }));
+vi.mock('@/lib/env', () => ({ getFdcApiKey: mockGetFdcApiKey }));
+
 import {
   createRecipeForUser,
   deleteRecipeForUser,
   getCurrentUser,
   getRecipeByIdForUser,
   getRecipeImageUrl,
+  listPublicRecipes,
   listRecipesForUser,
   updateRecipeForUser,
   uploadRecipeImage,
@@ -52,11 +58,18 @@ const MOCK_RECIPE = {
   tags: [],
   cook_time: null,
   is_public: false,
+  servings: null,
+  meal_types: [],
+  ingredients_nutrition: null,
   created_at: new Date(),
   updated_at: new Date(),
 };
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  // Default: no FDC API key → enrichment is skipped (existing tests unaffected)
+  mockGetFdcApiKey.mockReturnValue(undefined);
+});
 
 // ---------------------------------------------------------------------------
 // getCurrentUser
@@ -171,6 +184,8 @@ describe('createRecipeForUser', () => {
         tags: [],
         cook_time: null,
         is_public: false,
+        servings: null,
+        meal_types: [],
       },
     });
     expect(result).toEqual(MOCK_RECIPE);
@@ -305,5 +320,151 @@ describe('getRecipeImageUrl', () => {
 
   it('encodes special characters in the path', () => {
     expect(getRecipeImageUrl('user/my recipe.jpg')).toBe('/api/images?path=user%2Fmy%20recipe.jpg');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Ingredient enrichment (runEnrichment via createRecipeForUser / updateRecipeForUser)
+// ---------------------------------------------------------------------------
+describe('ingredient enrichment', () => {
+  const INPUT = {
+    title: 'Test',
+    description: '',
+    ingredients: ['chicken breast', '2 cups milk'],
+    instructions: ['cook'],
+  };
+
+  const NUTRITION = [
+    {
+      text: 'chicken breast',
+      fdcId: 1,
+      calories: 165,
+      protein_g: 31,
+      carbs_g: 0,
+      fat_g: 4,
+      category: 'Poultry Products',
+    },
+    {
+      text: '2 cups milk',
+      fdcId: 2,
+      calories: 61,
+      protein_g: 3,
+      carbs_g: 5,
+      fat_g: 3,
+      category: 'Dairy and Egg Products',
+    },
+  ];
+
+  it('calls enrichIngredients and stores results when API key is present', async () => {
+    mockGetFdcApiKey.mockReturnValue('my-key');
+    mockCreate.mockResolvedValue(MOCK_RECIPE);
+    mockEnrichIngredients.mockResolvedValue(NUTRITION);
+    mockUpdate.mockResolvedValue({ ...MOCK_RECIPE, ingredients_nutrition: NUTRITION });
+
+    await createRecipeForUser(USER_ID, INPUT);
+
+    expect(mockEnrichIngredients).toHaveBeenCalledWith(INPUT.ingredients, 'my-key');
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: RECIPE_ID },
+        data: { ingredients_nutrition: NUTRITION },
+      }),
+    );
+  });
+
+  it('skips enrichment when no API key is configured', async () => {
+    mockGetFdcApiKey.mockReturnValue(undefined);
+    mockCreate.mockResolvedValue(MOCK_RECIPE);
+
+    await createRecipeForUser(USER_ID, INPUT);
+
+    expect(mockEnrichIngredients).not.toHaveBeenCalled();
+  });
+
+  it('does not throw if enrichment fails', async () => {
+    mockGetFdcApiKey.mockReturnValue('my-key');
+    mockCreate.mockResolvedValue(MOCK_RECIPE);
+    mockEnrichIngredients.mockRejectedValue(new Error('FDC unavailable'));
+
+    await expect(createRecipeForUser(USER_ID, INPUT)).resolves.toBeDefined();
+  });
+
+  it('re-enriches on update when ingredients change', async () => {
+    mockGetFdcApiKey.mockReturnValue('my-key');
+    mockFindFirst.mockResolvedValue(MOCK_RECIPE);
+    mockUpdate.mockResolvedValue(MOCK_RECIPE);
+    mockEnrichIngredients.mockResolvedValue(NUTRITION);
+
+    await updateRecipeForUser(RECIPE_ID, USER_ID, { ingredients: ['garlic'] });
+
+    expect(mockEnrichIngredients).toHaveBeenCalledWith(['garlic'], 'my-key');
+  });
+
+  it('skips enrichment on update when ingredients are not in the payload', async () => {
+    mockGetFdcApiKey.mockReturnValue('my-key');
+    mockFindFirst.mockResolvedValue(MOCK_RECIPE);
+    mockUpdate.mockResolvedValue(MOCK_RECIPE);
+
+    await updateRecipeForUser(RECIPE_ID, USER_ID, { title: 'New Title' });
+
+    expect(mockEnrichIngredients).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// listPublicRecipes
+// ---------------------------------------------------------------------------
+describe('listPublicRecipes', () => {
+  const PUBLIC_RECIPE = { ...MOCK_RECIPE, is_public: true };
+
+  it('queries only public recipes ordered by created_at desc', async () => {
+    mockFindMany.mockResolvedValue([PUBLIC_RECIPE]);
+
+    const result = await listPublicRecipes();
+
+    expect(mockFindMany).toHaveBeenCalledWith({
+      where: { is_public: true },
+      orderBy: { created_at: 'desc' },
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].is_public).toBe(true);
+  });
+
+  it('applies title/description text search when query provided', async () => {
+    mockFindMany.mockResolvedValue([]);
+
+    await listPublicRecipes({ query: 'chicken' });
+
+    expect(mockFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          is_public: true,
+          OR: [
+            { title: { contains: 'chicken', mode: 'insensitive' } },
+            { description: { contains: 'chicken', mode: 'insensitive' } },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it('applies tag filter when tag provided', async () => {
+    mockFindMany.mockResolvedValue([]);
+
+    await listPublicRecipes({ tag: 'Vegan' });
+
+    expect(mockFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          is_public: true,
+          tags: { has: 'vegan' },
+        }),
+      }),
+    );
+  });
+
+  it('returns empty array when no public recipes exist', async () => {
+    mockFindMany.mockResolvedValue([]);
+    expect(await listPublicRecipes()).toEqual([]);
   });
 });

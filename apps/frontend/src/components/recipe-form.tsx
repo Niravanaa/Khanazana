@@ -14,6 +14,13 @@ interface IngredientRow {
   note: string;
 }
 
+const MEAL_TYPE_OPTIONS = [
+  { value: 'breakfast', label: 'Breakfast' },
+  { value: 'lunch', label: 'Lunch' },
+  { value: 'dinner', label: 'Dinner' },
+  { value: 'snacks', label: 'Snacks' },
+] as const;
+
 interface RecipeFormProps {
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
@@ -34,6 +41,7 @@ function emptyIngredient(): IngredientRow {
 
 export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormProps) {
   const [isPublic, setIsPublic] = useState(initialRecipe?.is_public ?? false);
+  const [mealTypes, setMealTypes] = useState<string[]>(initialRecipe?.meal_types ?? []);
   const [ingredients, setIngredients] = useState<IngredientRow[]>(
     initialRecipe?.ingredients?.length
       ? initialRecipe.ingredients.map(parseIngredientString)
@@ -89,8 +97,8 @@ export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormPro
         />
       </div>
 
-      {/* Cook time + Tags */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Cook time + Servings + Tags */}
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="cook_time">Cook Time (minutes)</Label>
           <Input
@@ -100,6 +108,17 @@ export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormPro
             min="1"
             defaultValue={initialRecipe?.cook_time ?? ''}
             placeholder="e.g. 30"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="servings">Servings</Label>
+          <Input
+            id="servings"
+            name="servings"
+            type="number"
+            min="1"
+            defaultValue={initialRecipe?.servings ?? ''}
+            placeholder="e.g. 4"
           />
         </div>
         <div className="space-y-2">
@@ -113,6 +132,41 @@ export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormPro
         </div>
       </div>
 
+      {/* Meal types */}
+      <div className="space-y-2">
+        <Label>Meal type</Label>
+        <div className="flex flex-wrap gap-3">
+          {MEAL_TYPE_OPTIONS.map((opt) => {
+            const checked = mealTypes.includes(opt.value);
+            return (
+              <label
+                key={opt.value}
+                className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                  checked
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border text-muted-foreground hover:border-primary/50'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  name="meal_types"
+                  value={opt.value}
+                  checked={checked}
+                  onChange={(e) =>
+                    setMealTypes((prev) =>
+                      e.target.checked ? [...prev, opt.value] : prev.filter((v) => v !== opt.value),
+                    )
+                  }
+                  className="sr-only"
+                />
+                {opt.label}
+              </label>
+            );
+          })}
+        </div>
+        <p className="text-xs text-muted-foreground">Select all that apply.</p>
+      </div>
+
       {/* Visibility */}
       <div className="flex items-center justify-between rounded-lg border border-border p-4">
         <div>
@@ -123,6 +177,7 @@ export function RecipeForm({ action, submitLabel, initialRecipe }: RecipeFormPro
         <button
           type="button"
           role="switch"
+          aria-label="Toggle public recipe"
           aria-checked={isPublic}
           onClick={() => setIsPublic((v) => !v)}
           className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${isPublic ? 'bg-primary' : 'bg-input'}`}
