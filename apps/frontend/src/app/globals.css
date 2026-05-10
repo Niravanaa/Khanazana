@@ -60,6 +60,258 @@
   --ring: 142 45% 55%;
 }
 
+/* ── Rose ──────────────────────────────────────────────────────────────── */
+.theme-rose {
+  --background: 345 40% 97%;
+  --foreground: 345 45% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 345 45% 12%;
+  --primary: 345 55% 35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 345 28% 92%;
+  --secondary-foreground: 345 45% 12%;
+  --muted: 345 22% 93%;
+  --muted-foreground: 345 18% 40%;
+  --accent: 345 33% 88%;
+  --accent-foreground: 345 45% 12%;
+  --border: 345 22% 88%;
+  --input: 345 22% 88%;
+  --ring: 345 55% 35%;
+}
+.dark.theme-rose {
+  --background: 345 28% 8%;
+  --foreground: 345 33% 93%;
+  --card: 345 23% 13%;
+  --card-foreground: 345 33% 93%;
+  --primary: 345 55% 65%;
+  --primary-foreground: 345 28% 8%;
+  --secondary: 345 18% 20%;
+  --secondary-foreground: 345 33% 93%;
+  --muted: 345 18% 20%;
+  --muted-foreground: 345 18% 62%;
+  --accent: 345 22% 22%;
+  --accent-foreground: 345 33% 93%;
+  --border: 345 16% 22%;
+  --input: 345 16% 22%;
+  --ring: 345 55% 65%;
+}
+
+/* ── Lavender ──────────────────────────────────────────────────────────── */
+.theme-lavender {
+  --background: 270 40% 97%;
+  --foreground: 270 45% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 270 45% 12%;
+  --primary: 270 50% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 270 28% 92%;
+  --secondary-foreground: 270 45% 12%;
+  --muted: 270 22% 93%;
+  --muted-foreground: 270 18% 40%;
+  --accent: 270 33% 88%;
+  --accent-foreground: 270 45% 12%;
+  --border: 270 22% 88%;
+  --input: 270 22% 88%;
+  --ring: 270 50% 38%;
+}
+.dark.theme-lavender {
+  --background: 270 28% 8%;
+  --foreground: 270 33% 93%;
+  --card: 270 23% 13%;
+  --card-foreground: 270 33% 93%;
+  --primary: 270 50% 65%;
+  --primary-foreground: 270 28% 8%;
+  --secondary: 270 18% 20%;
+  --secondary-foreground: 270 33% 93%;
+  --muted: 270 18% 20%;
+  --muted-foreground: 270 18% 62%;
+  --accent: 270 22% 22%;
+  --accent-foreground: 270 33% 93%;
+  --border: 270 16% 22%;
+  --input: 270 16% 22%;
+  --ring: 270 50% 65%;
+}
+
+/* ── Peach ─────────────────────────────────────────────────────────────── */
+.theme-peach {
+  --background: 20 40% 97%;
+  --foreground: 20 45% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 45% 12%;
+  --primary: 20 65% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 20 28% 92%;
+  --secondary-foreground: 20 45% 12%;
+  --muted: 20 22% 93%;
+  --muted-foreground: 20 18% 40%;
+  --accent: 20 33% 88%;
+  --accent-foreground: 20 45% 12%;
+  --border: 20 22% 88%;
+  --input: 20 22% 88%;
+  --ring: 20 65% 38%;
+}
+.dark.theme-peach {
+  --background: 20 28% 8%;
+  --foreground: 20 33% 93%;
+  --card: 20 23% 13%;
+  --card-foreground: 20 33% 93%;
+  --primary: 20 65% 65%;
+  --primary-foreground: 20 28% 8%;
+  --secondary: 20 18% 20%;
+  --secondary-foreground: 20 33% 93%;
+  --muted: 20 18% 20%;
+  --muted-foreground: 20 18% 62%;
+  --accent: 20 22% 22%;
+  --accent-foreground: 20 33% 93%;
+  --border: 20 16% 22%;
+  --input: 20 16% 22%;
+  --ring: 20 65% 65%;
+}
+
+/* ── Sky ───────────────────────────────────────────────────────────────── */
+.theme-sky {
+  --background: 205 40% 97%;
+  --foreground: 205 45% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 205 45% 12%;
+  --primary: 205 60% 32%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 205 28% 92%;
+  --secondary-foreground: 205 45% 12%;
+  --muted: 205 22% 93%;
+  --muted-foreground: 205 18% 40%;
+  --accent: 205 33% 88%;
+  --accent-foreground: 205 45% 12%;
+  --border: 205 22% 88%;
+  --input: 205 22% 88%;
+  --ring: 205 60% 32%;
+}
+.dark.theme-sky {
+  --background: 205 28% 8%;
+  --foreground: 205 33% 93%;
+  --card: 205 23% 13%;
+  --card-foreground: 205 33% 93%;
+  --primary: 205 60% 62%;
+  --primary-foreground: 205 28% 8%;
+  --secondary: 205 18% 20%;
+  --secondary-foreground: 205 33% 93%;
+  --muted: 205 18% 20%;
+  --muted-foreground: 205 18% 62%;
+  --accent: 205 22% 22%;
+  --accent-foreground: 205 33% 93%;
+  --border: 205 16% 22%;
+  --input: 205 16% 22%;
+  --ring: 205 60% 62%;
+}
+
+/* ── Teal ──────────────────────────────────────────────────────────────── */
+.theme-teal {
+  --background: 175 40% 97%;
+  --foreground: 175 45% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 175 45% 12%;
+  --primary: 175 55% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 175 28% 92%;
+  --secondary-foreground: 175 45% 12%;
+  --muted: 175 22% 93%;
+  --muted-foreground: 175 18% 40%;
+  --accent: 175 33% 88%;
+  --accent-foreground: 175 45% 12%;
+  --border: 175 22% 88%;
+  --input: 175 22% 88%;
+  --ring: 175 55% 30%;
+}
+.dark.theme-teal {
+  --background: 175 28% 8%;
+  --foreground: 175 33% 93%;
+  --card: 175 23% 13%;
+  --card-foreground: 175 33% 93%;
+  --primary: 175 55% 58%;
+  --primary-foreground: 175 28% 8%;
+  --secondary: 175 18% 20%;
+  --secondary-foreground: 175 33% 93%;
+  --muted: 175 18% 20%;
+  --muted-foreground: 175 18% 62%;
+  --accent: 175 22% 22%;
+  --accent-foreground: 175 33% 93%;
+  --border: 175 16% 22%;
+  --input: 175 16% 22%;
+  --ring: 175 55% 58%;
+}
+
+/* ── Amber ─────────────────────────────────────────────────────────────── */
+.theme-amber {
+  --background: 42 40% 97%;
+  --foreground: 42 45% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 42 45% 12%;
+  --primary: 42 70% 35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 42 28% 92%;
+  --secondary-foreground: 42 45% 12%;
+  --muted: 42 22% 93%;
+  --muted-foreground: 42 18% 40%;
+  --accent: 42 33% 88%;
+  --accent-foreground: 42 45% 12%;
+  --border: 42 22% 88%;
+  --input: 42 22% 88%;
+  --ring: 42 70% 35%;
+}
+.dark.theme-amber {
+  --background: 42 28% 8%;
+  --foreground: 42 33% 93%;
+  --card: 42 23% 13%;
+  --card-foreground: 42 33% 93%;
+  --primary: 42 70% 62%;
+  --primary-foreground: 42 28% 8%;
+  --secondary: 42 18% 20%;
+  --secondary-foreground: 42 33% 93%;
+  --muted: 42 18% 20%;
+  --muted-foreground: 42 18% 62%;
+  --accent: 42 22% 22%;
+  --accent-foreground: 42 33% 93%;
+  --border: 42 16% 22%;
+  --input: 42 16% 22%;
+  --ring: 42 70% 62%;
+}
+
+/* ── Sand ──────────────────────────────────────────────────────────────── */
+.theme-sand {
+  --background: 35 20% 97%;
+  --foreground: 35 25% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 35 25% 12%;
+  --primary: 35 30% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 35 15% 92%;
+  --secondary-foreground: 35 25% 12%;
+  --muted: 35 12% 93%;
+  --muted-foreground: 35 10% 40%;
+  --accent: 35 18% 88%;
+  --accent-foreground: 35 25% 12%;
+  --border: 35 12% 88%;
+  --input: 35 12% 88%;
+  --ring: 35 30% 38%;
+}
+.dark.theme-sand {
+  --background: 35 18% 8%;
+  --foreground: 35 20% 93%;
+  --card: 35 15% 13%;
+  --card-foreground: 35 20% 93%;
+  --primary: 35 32% 58%;
+  --primary-foreground: 35 18% 8%;
+  --secondary: 35 12% 20%;
+  --secondary-foreground: 35 20% 93%;
+  --muted: 35 12% 20%;
+  --muted-foreground: 35 10% 62%;
+  --accent: 35 14% 22%;
+  --accent-foreground: 35 20% 93%;
+  --border: 35 10% 22%;
+  --input: 35 10% 22%;
+  --ring: 35 32% 58%;
+}
+
 /* Visible keyboard focus indicator using the design-system ring colour */
 :focus-visible {
   outline: 2px solid hsl(var(--ring));

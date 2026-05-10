@@ -21,20 +21,28 @@
 ## Features
 
 - **Auth** — Google OAuth and email/password sign-in via Supabase Auth
-- **Recipe management** — Create, view, edit, and delete recipes with title, description, ingredients, tags, and cook time
+- **Recipe management** — Create, view, edit, and delete recipes with title, description, ingredients, tags, cook time, and serving size
 - **Image upload** — Attach photos to recipes, stored in Supabase Storage
-- **Meal planning** — Plan weekly meals by assigning recipes to specific days and meal slots
-- **Shopping list** — Auto-generate organized shopping lists from meal plans with export capability
+- **Recipe filtering** — Filter recipes by ingredient, tag, and cook time
+- **Ingredient scaling** — Adjust serving count and have ingredient quantities scale automatically
+- **Nutritional info** — Ingredients are enriched via the USDA FoodData Central API on save; calories and macros are shown on recipe detail pages
+- **Print view** — Clean printer-friendly recipe layout with a Print / Save as PDF button
+- **Public recipes & discovery** — Mark recipes as public to generate a shareable link; browse all public recipes on the Discover page
+- **Social** — Like and comment on public recipes; authors can moderate comments on their own recipes
+- **Meal planning** — Plan weekly meals by assigning recipes to days and meal slots (Breakfast / Lunch / Dinner / Snacks), with a weekly nutritional summary
+- **Shopping list** — Auto-generate shopping lists from meal plans, grouped by grocery aisle, with mark-as-bought and CSV export
+- **PWA** — Installable as a progressive web app; shopping list works offline
+- **Color themes** — Choose from 8 pastel color themes; preference is persisted across sessions
 - **Monorepo** — `pnpm` workspaces with `apps/frontend` (Next.js) and `packages/shared`
 - **Quality gates** — Husky pre-commit hooks, lint-staged, branch/commit message validation, and GitHub Actions CI (lint, type-check, tests, coverage upload)
-- **Test coverage** — Vitest unit tests with ≥ 70% coverage enforced on every PR, uploaded to codecov
+- **Test coverage** — Vitest unit tests with ≥ 80% coverage enforced on every PR, uploaded to Codecov
 
 ## Quick start
 
 ### Prerequisites
 
 - Node.js 20+
-- pnpm 9+
+- pnpm 10+
 - Docker (for local Supabase)
 - [Supabase CLI](https://github.com/supabase/cli/releases) (`~/.supabase/supabase.exe` on Windows)
 
