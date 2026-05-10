@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { RecipeForm } from '@/components/recipe-form';
 import { getCurrentUser } from '@/lib/recipes';
 import { createRecipeAction } from '@/app/recipes/actions';
+import { NewRecipeClient } from './new-recipe-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +29,7 @@ export default async function NewRecipePage() {
             <CardDescription>Add a new recipe to your collection</CardDescription>
           </CardHeader>
           <CardContent>
-            <RecipeForm action={createRecipeAction} submitLabel="Save Recipe" />
+            <NewRecipeClient action={createRecipeAction} />
           </CardContent>
         </Card>
       </div>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { RecipeRecord } from '@/lib/types';
+import type { RecipeInput } from '@/lib/types';
 
 interface IngredientRow {
   qty: string;
@@ -24,7 +24,7 @@ const MEAL_TYPE_OPTIONS = [
 interface RecipeFormProps {
   action: (formData: FormData) => Promise<void>;
   submitLabel: string;
-  initialRecipe?: RecipeRecord;
+  initialRecipe?: RecipeInput;
 }
 
 function parseIngredientString(s: string): IngredientRow {
