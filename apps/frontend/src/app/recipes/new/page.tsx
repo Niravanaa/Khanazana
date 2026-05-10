@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getCurrentUser } from '@/lib/recipes';
 import { createRecipeAction } from '@/app/recipes/actions';
 import { NewRecipeClient } from './new-recipe-client';
@@ -23,15 +22,7 @@ export default async function NewRecipePage() {
           ← Back to recipes
         </Link>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl">Create Recipe</CardTitle>
-            <CardDescription>Add a new recipe to your collection</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <NewRecipeClient action={createRecipeAction} />
-          </CardContent>
-        </Card>
+        <NewRecipeClient action={createRecipeAction} />
       </div>
     </main>
   );
