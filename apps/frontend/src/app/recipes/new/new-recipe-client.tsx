@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RecipeForm } from '@/components/recipe-form';
 import { RecipeImportButton } from '@/components/recipe-import-button';
 import type { RecipeInput } from '@/lib/types';
@@ -19,16 +20,24 @@ export function NewRecipeClient({ action }: NewRecipeClientProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
-        <RecipeImportButton onImport={handleImport} />
-      </div>
-      <RecipeForm
-        key={importKey}
-        action={action}
-        submitLabel="Save Recipe"
-        initialRecipe={importedRecipe}
-      />
-    </div>
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-3xl">Create Recipe</CardTitle>
+            <CardDescription>Add a new recipe to your collection</CardDescription>
+          </div>
+          <RecipeImportButton onImport={handleImport} />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <RecipeForm
+          key={importKey}
+          action={action}
+          submitLabel="Save Recipe"
+          initialRecipe={importedRecipe}
+        />
+      </CardContent>
+    </Card>
   );
 }
