@@ -133,6 +133,19 @@ export async function toggleShoppingItem(userId: string, itemId: string): Promis
   await prisma.shoppingListItem.update({ where: { id: itemId }, data: { bought: !item.bought } });
 }
 
+export async function addShoppingItem(
+  userId: string,
+  weekStart: Date,
+  ingredient: string,
+): Promise<ShoppingListItemRecord> {
+  const trimmed = ingredient.trim();
+  if (!trimmed) throw new Error('Ingredient cannot be empty');
+  const item = await prisma.shoppingListItem.create({
+    data: { user_id: userId, week_start: weekStart, ingredient: trimmed, category: null },
+  });
+  return { id: item.id, ingredient: item.ingredient, bought: item.bought, category: item.category };
+}
+
 export async function consolidateShoppingItems(
   userId: string,
   keepId: string,

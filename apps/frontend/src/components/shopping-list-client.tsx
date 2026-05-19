@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from 'react';
 import { track } from '@vercel/analytics';
-import { toggleItemAction, consolidateItemsAction } from '@/app/shopping-list/actions';
+import {
+  toggleItemAction,
+  consolidateItemsAction,
+  addItemAction,
+} from '@/app/shopping-list/actions';
 import type { ShoppingListItemRecord } from '@/lib/shopping-list';
 
 interface ShoppingListClientProps {
@@ -160,10 +164,23 @@ export function ShoppingListClient({ items, week, exportUrl, generated }: Shoppi
   const [, startTransition] = useTransition();
   const [pendingPairs, setPendingPairs] = useState<SimilarPair[]>([]);
   const [checked, setChecked] = useState(false);
-  const [optimisticItems, applyOptimisticToggle] = useOptimistic(
+  const [addText, setAddText] = useState('');
+  const addInputRef = useRef<HTMLInputElement>(null);
+
+  type OptimisticAction =
+    | { type: 'toggle'; id: string }
+    | { type: 'add'; item: ShoppingListItemRecord };
+
+  const [optimisticItems, applyOptimistic] = useOptimistic(
     items,
-    (state, toggledId: string) =>
-      state.map((item) => (item.id === toggledId ? { ...item, bought: !item.bought } : item)),
+    (state, action: OptimisticAction) => {
+      if (action.type === 'toggle')
+        return state.map((item) =>
+          item.id === action.id ? { ...item, bought: !item.bought } : item,
+        );
+      if (action.type === 'add') return [...state, action.item];
+      return state;
+    },
   );
 
   useEffect(() => {
@@ -205,8 +222,25 @@ export function ShoppingListClient({ items, week, exportUrl, generated }: Shoppi
 
   function handleToggle(itemId: string) {
     startTransition(() => {
-      applyOptimisticToggle(itemId);
+      applyOptimistic({ type: 'toggle', id: itemId });
       toggleItemAction(itemId, week);
+    });
+  }
+
+  function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = addText.trim();
+    if (!trimmed) return;
+    const tempItem: ShoppingListItemRecord = {
+      id: `optimistic-${Date.now()}`,
+      ingredient: trimmed,
+      bought: false,
+      category: null,
+    };
+    setAddText('');
+    startTransition(() => {
+      applyOptimistic({ type: 'add', item: tempItem });
+      addItemAction(trimmed, week);
     });
   }
 
@@ -310,6 +344,24 @@ export function ShoppingListClient({ items, week, exportUrl, generated }: Shoppi
             ))}
           </div>
         )}
+
+        <form onSubmit={handleAdd} className="mt-4 flex gap-2">
+          <input
+            ref={addInputRef}
+            type="text"
+            value={addText}
+            onChange={(e) => setAddText(e.target.value)}
+            placeholder="Add an item…"
+            className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary"
+          />
+          <button
+            type="submit"
+            disabled={!addText.trim()}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            Add
+          </button>
+        </form>
 
         {boughtCount > 0 && (
           <p className="mt-4 text-right text-xs text-muted-foreground">
